@@ -17,6 +17,8 @@ export default function ApplicationsScreen() {
     <Screen>
       <View style={styles.container}>
         <ScrollView
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={loading} onRefresh={refresh} />
           }

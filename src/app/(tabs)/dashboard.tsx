@@ -83,6 +83,8 @@ export default function DashboardScreen() {
   return (
     <Screen>
       <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -156,9 +158,9 @@ export default function DashboardScreen() {
         )}
         <VStack className="gap-3">
           <Heading size="lg">Quick actions</Heading>
-          <View className="flex-row gap-3">
+          <View className="flex-row flex-wrap gap-3">
             <Pressable
-              className="flex-1"
+              className="min-w-[30%] flex-1"
               onPress={() => setDialog("deposit")}
               accessibilityRole="button"
               accessibilityLabel="Deposit contribution"
@@ -171,7 +173,7 @@ export default function DashboardScreen() {
               </AppCard>
             </Pressable>
             <Pressable
-              className="flex-1"
+              className="min-w-[30%] flex-1"
               onPress={() => setDialog("request")}
               accessibilityRole="button"
               accessibilityLabel="Request a loan"
@@ -184,7 +186,7 @@ export default function DashboardScreen() {
               </AppCard>
             </Pressable>
             <Pressable
-              className="flex-1"
+              className="min-w-[30%] flex-1"
               onPress={() => setDialog(creditLoans[0] ? "repay" : "request")}
               accessibilityRole="button"
               accessibilityLabel="Repay a loan"

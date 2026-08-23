@@ -17,6 +17,12 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
+import { env } from "@/config/env";
+
+const developmentCredentials = {
+  email: "allankorir66@gmail.com",
+  password: "1234Love&",
+};
 
 export default function LoginScreen() {
   const { colors } = useTheme();
@@ -24,8 +30,12 @@ export default function LoginScreen() {
   const error = useAuthStore((state) => state.error);
   const loading = useAuthStore((state) => state.isLoading);
   const clearError = useAuthStore((state) => state.clearError);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(
+    env.isDevelopment ? developmentCredentials.email : "",
+  );
+  const [password, setPassword] = useState(
+    env.isDevelopment ? developmentCredentials.password : "",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState("");
 
@@ -54,6 +64,8 @@ export default function LoginScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
           keyboardShouldPersistTaps="handled"
         >

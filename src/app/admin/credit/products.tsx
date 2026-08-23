@@ -87,7 +87,7 @@ export default function AdminProducts() {
   return (
     <Screen>
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={{ gap: 16, paddingBottom: 96 }}>
+        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 96 }}>
           <VStack className="flex-row items-center justify-between">
             <Heading size="3xl">Credit products</Heading>
             {showForm && (

@@ -19,6 +19,8 @@ export default function AdminPortfolio() {
   return (
     <Screen>
       <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading && Boolean(items.length)}

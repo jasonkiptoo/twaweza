@@ -20,7 +20,7 @@ export default function DesignSystemScreen() {
   const [value, setValue] = useState("");
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ gap: 24, paddingBottom: 32 }}>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 24, paddingBottom: 32 }}>
         <Container>
           <VStack className="gap-6">
             <VStack className="gap-1">

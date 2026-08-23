@@ -51,6 +51,8 @@ export default function GroupScreen() {
   return (
     <Screen>
       <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -65,8 +67,9 @@ export default function GroupScreen() {
           <Heading size="3xl">The Squad</Heading>
         </VStack>
         <ScrollView
-          horizontal
+          showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
+          horizontal
           contentContainerStyle={{ gap: 8 }}
         >
           {sections.map((item) => (

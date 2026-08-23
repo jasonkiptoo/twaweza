@@ -6,6 +6,7 @@ import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
+import { Pressable } from "react-native";
 
 export default function CreditHome() {
   const router = useRouter();
@@ -17,41 +18,51 @@ export default function CreditHome() {
           <Text className="text-muted-foreground">Borrow with clarity</Text>
           <Heading size="3xl">Loans</Heading>
         </VStack>
-        <AppCard
-          onTouchEnd={() => router.push("/(tabs)/credit-management/products")}
+        <Pressable
+          onPress={() => router.push("/(tabs)/credit-management/products")}
+          accessibilityRole="button"
+          accessibilityLabel="Open loan products"
         >
-          <VStack className="gap-2">
-            <CreditCard size={24} color={colors.primary} />
-            <Heading size="lg">Loan products</Heading>
-            <Text className="text-muted-foreground">
-              Explore available products and terms.
-            </Text>
-          </VStack>
-        </AppCard>
-        <AppCard
-          onTouchEnd={() =>
-            router.push("/(tabs)/credit-management/applications")
-          }
+          <AppCard>
+            <VStack className="gap-2">
+              <CreditCard size={24} color={colors.primary} />
+              <Heading size="lg">Loan products</Heading>
+              <Text className="text-muted-foreground">
+                Explore available products and terms.
+              </Text>
+            </VStack>
+          </AppCard>
+        </Pressable>
+        <Pressable
+          onPress={() => router.push("/(tabs)/credit-management/applications")}
+          accessibilityRole="button"
+          accessibilityLabel="Open my applications"
         >
-          <VStack className="gap-2">
-            <FileText size={24} color={colors.primary} />
-            <Heading size="lg">My applications</Heading>
-            <Text className="text-muted-foreground">
-              Track submitted applications.
-            </Text>
-          </VStack>
-        </AppCard>
-        <AppCard
-          onTouchEnd={() => router.push("/(tabs)/credit-management/loans")}
+          <AppCard>
+            <VStack className="gap-2">
+              <FileText size={24} color={colors.primary} />
+              <Heading size="lg">My applications</Heading>
+              <Text className="text-muted-foreground">
+                Track submitted applications.
+              </Text>
+            </VStack>
+          </AppCard>
+        </Pressable>
+        <Pressable
+          onPress={() => router.push("/(tabs)/credit-management/loans")}
+          accessibilityRole="button"
+          accessibilityLabel="Open my loans"
         >
-          <VStack className="gap-2">
-            <CreditCard size={24} color={colors.primary} />
-            <Heading size="lg">My loans</Heading>
-            <Text className="text-muted-foreground">
-              Review balances and repayment schedules.
-            </Text>
-          </VStack>
-        </AppCard>
+          <AppCard>
+            <VStack className="gap-2">
+              <CreditCard size={24} color={colors.primary} />
+              <Heading size="lg">My loans</Heading>
+              <Text className="text-muted-foreground">
+                Review balances and repayment schedules.
+              </Text>
+            </VStack>
+          </AppCard>
+        </Pressable>
       </VStack>
     </Screen>
   );

@@ -35,7 +35,7 @@ export default function AdminApplications() {
   const selectedApplication = items.find((item) => item.id === selected?.id);
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ gap: 16, paddingBottom: 32 }}>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 32 }}>
         <Heading size="3xl">Application review</Heading>
         {feedback && <Text className="text-success">{feedback}</Text>}
         {loading && !items.length && <AppSkeleton height={150} />}

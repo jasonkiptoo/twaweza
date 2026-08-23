@@ -25,6 +25,8 @@ export default function LoansListScreen() {
   return (
     <Screen>
       <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={refresh} />
         }

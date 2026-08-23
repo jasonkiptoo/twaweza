@@ -27,6 +27,8 @@ export default function ActivityScreen() {
   return (
     <Screen>
       <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading && Boolean(activities.length)}

@@ -37,6 +37,8 @@ export default function AdminLoansScreen() {
   return (
     <Screen>
       <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading && Boolean(loans.length)}

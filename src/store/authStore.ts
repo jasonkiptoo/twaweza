@@ -23,6 +23,31 @@ import {
 } from "@/services/authApi";
 import { getApiErrorMessage } from "@/utils/apiError";
 
+const memoryStorage = new Map<string, string>();
+const safeStorage = {
+  getItem: async (name: string) => {
+    try {
+      const value = await AsyncStorage.getItem(name);
+      if (value !== null) memoryStorage.set(name, value);
+      return value ?? memoryStorage.get(name) ?? null;
+    } catch {
+      return memoryStorage.get(name) ?? null;
+    }
+  },
+  setItem: async (name: string, value: string) => {
+    memoryStorage.set(name, value);
+    try {
+      await AsyncStorage.setItem(name, value);
+    } catch {}
+  },
+  removeItem: async (name: string) => {
+    memoryStorage.delete(name);
+    try {
+      await AsyncStorage.removeItem(name);
+    } catch {}
+  },
+};
+
 interface AuthState {
   token?: string;
   user?: User;
@@ -163,7 +188,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "savesmart.auth",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         token: state.token,
         user: state.user,

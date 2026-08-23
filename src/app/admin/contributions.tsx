@@ -37,7 +37,7 @@ export default function AdminContributionsScreen() {
   );
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ gap: 16, paddingBottom: 32 }}>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 32 }}>
         <Heading size="3xl">Contribution approvals</Heading>
         {loading && !contributions.length && <AppSkeleton height={150} />}
         {error && (

@@ -1,5 +1,4 @@
 import React from "react";
-import { createModal } from "@gluestack-ui/core/modal/creator";
 import {
   Modal as NativeModal,
   Pressable,
@@ -7,16 +6,14 @@ import {
   View,
 } from "react-native";
 
-const Root = createModal({
-  Root: ({
-    isOpen,
-    onClose,
-    children,
-    ...props
-  }: React.ComponentProps<typeof NativeModal> & {
-    isOpen?: boolean;
-    onClose?: () => void;
-  }) => (
+type ViewProps = React.ComponentProps<typeof View>;
+type ModalProps = React.ComponentProps<typeof NativeModal> & {
+  isOpen?: boolean;
+  onClose?: () => void;
+};
+
+function Root({ isOpen, onClose, children, ...props }: ModalProps) {
+  return (
     <NativeModal
       {...props}
       visible={isOpen}
@@ -26,21 +23,23 @@ const Root = createModal({
     >
       {children}
     </NativeModal>
-  ),
-  Content: (props: React.ComponentProps<typeof View>) => (
-    <View {...props} style={[styles.content, props.style]} />
-  ),
-  CloseButton: Pressable,
-  Header: (props: React.ComponentProps<typeof View>) => (
-    <View {...props} style={[styles.header, props.style]} />
-  ),
-  Footer: (props: React.ComponentProps<typeof View>) => (
-    <View {...props} style={[styles.footer, props.style]} />
-  ),
-  Body: (props: React.ComponentProps<typeof View>) => (
-    <View {...props} style={[styles.body, props.style]} />
-  ),
-  Backdrop: ({ style, ...props }: React.ComponentProps<typeof Pressable>) => (
+  );
+}
+
+function Content(props: ViewProps) {
+  return <View {...props} style={[styles.content, props.style]} />;
+}
+function Header(props: ViewProps) {
+  return <View {...props} style={[styles.header, props.style]} />;
+}
+function Footer(props: ViewProps) {
+  return <View {...props} style={[styles.footer, props.style]} />;
+}
+function Body(props: ViewProps) {
+  return <View {...props} style={[styles.body, props.style]} />;
+}
+function Backdrop({ style, ...props }: React.ComponentProps<typeof Pressable>) {
+  return (
     <Pressable
       {...props}
       style={(state) => [
@@ -48,16 +47,23 @@ const Root = createModal({
         typeof style === "function" ? style(state) : style,
       ]}
     />
-  ),
-});
+  );
+}
 
-export const Modal = Root;
-export const ModalBackdrop = Root.Backdrop;
-export const ModalContent = Root.Content;
-export const ModalHeader = Root.Header;
-export const ModalBody = Root.Body;
-export const ModalFooter = Root.Footer;
-export const ModalClose = Root.CloseButton;
+export const Modal = Object.assign(Root, {
+  Backdrop,
+  Content,
+  Header,
+  Body,
+  Footer,
+  CloseButton: Pressable,
+});
+export const ModalBackdrop = Backdrop;
+export const ModalContent = Content;
+export const ModalHeader = Header;
+export const ModalBody = Body;
+export const ModalFooter = Footer;
+export const ModalClose = Pressable;
 
 const styles = StyleSheet.create({
   backdrop: {
