@@ -1,0 +1,41 @@
+export const colors = {
+  light: {
+    primary: "#2457FF",
+    secondary: "#5F74F9",
+    background: "#F5F7FB",
+    surface: "#FFFFFF",
+    card: "#FFFFFF",
+    textPrimary: "#0F172A",
+    textSecondary: "#64748B",
+    muted: "#94A3B8",
+    border: "#E2E8F0",
+    divider: "#EEF2F7",
+    success: "#10B981",
+    warning: "#F59E0B",
+    error: "#EF4444",
+    info: "#3B82F6",
+    onPrimary: "#FFFFFF",
+    overlay: "rgba(15, 23, 42, 0.45)",
+  },
+  dark: {
+    primary: "#7C8FFF",
+    secondary: "#9DAAFF",
+    background: "#07111F",
+    surface: "#0E1728",
+    card: "#101B30",
+    textPrimary: "#F8FBFF",
+    textSecondary: "#A7B4C8",
+    muted: "#718096",
+    border: "#243553",
+    divider: "#1A2940",
+    success: "#34D399",
+    warning: "#FBBF24",
+    error: "#F87171",
+    info: "#60A5FA",
+    onPrimary: "#07111F",
+    overlay: "rgba(2, 6, 23, 0.65)",
+  },
+} as const;
+
+export type ColorMode = keyof typeof colors;
+export type SemanticColors = (typeof colors)[ColorMode];

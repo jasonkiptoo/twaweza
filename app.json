@@ -1,16 +1,17 @@
 {
   "expo": {
-    "name": "twaweza",
-    "slug": "twaweza",
+    "name": "SaveSmart",
+    "slug": "savesmart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "twaweza",
+    "scheme": "savesmart",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.savesmart.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -37,6 +38,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "appEnvironment": "development",
+      "eas": {
+        "projectId": "replace-with-eas-project-id"
+      }
     }
   }
 }

@@ -1,98 +1,95 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import * as SplashScreen from "expo-splash-screen";
+import { router } from "expo-router";
+import { PiggyBank } from "lucide-react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, StyleSheet } from "react-native";
+import { Screen } from "@/components/layout/Screen";
+import { Text } from "@/components/ui/text";
+import { VStack } from "@/components/ui/vstack";
+import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/authStore";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+SplashScreen.preventAutoHideAsync();
+const SPLASH_DURATION = 1800;
+const SPLASH_FAILSAFE = 10000;
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function SplashRoute() {
+  const { colors } = useTheme();
+  const initialized = useAuthStore((state) => state.initialized);
+  const status = useAuthStore((state) => state.status);
+  const otpRequired = useAuthStore((state) => state.otpRequired);
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.88)).current;
+
+  useEffect(() => {
+    const navigate = () => {
+      void SplashScreen.hideAsync();
+      if (status === "authenticated") {
+        router.replace(otpRequired ? "/(auth)/otp" : "/(tabs)/dashboard");
+      } else {
+        router.replace("/(auth)/login");
+      }
+    };
+    const failsafe = setTimeout(navigate, SPLASH_FAILSAFE);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 650,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        friction: 8,
+        tension: 55,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    const ready = setTimeout(() => {
+      if (initialized) navigate();
+    }, SPLASH_DURATION);
+    return () => {
+      clearTimeout(failsafe);
+      clearTimeout(ready);
+    };
+  }, [initialized, opacity, otpRequired, scale, status]);
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <Screen>
+      <VStack
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
+        <Animated.View style={{ opacity, transform: [{ scale }] }}>
+          <VStack className="items-center gap-4">
+            <VStack
+              style={[styles.logo, { backgroundColor: colors.primary }]}
+              className="items-center justify-center"
+            >
+              <PiggyBank color={colors.onPrimary} size={42} strokeWidth={1.8} />
+            </VStack>
+            <VStack className="items-center gap-1">
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                SaveSmart
+              </Text>
+              <Text style={{ color: colors.textSecondary }}>
+                Save now, or never
+              </Text>
+            </VStack>
+          </VStack>
+        </Animated.View>
+        <Text style={{ color: colors.muted }}>Powered by Financial Guru</Text>
+      </VStack>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    justifyContent: "center",
+    margin: -24,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  logo: { width: 92, height: 92, borderRadius: 28 },
+  title: { fontSize: 32, lineHeight: 40, fontWeight: "700" },
 });

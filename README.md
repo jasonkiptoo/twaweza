@@ -1,56 +1,59 @@
-# Welcome to your Expo app 👋
+# SaveSmart
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Save now, or never. SaveSmart is a cross-platform group savings and credit-management application for chama members and administrators.
 
-## Get started
+## Stack
 
-1. Install dependencies
+React Native, TypeScript, Expo, Expo Router, Gluestack UI, NativeWind, Zustand, Axios, AsyncStorage, lucide-react-native, and EAS Build.
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run locally
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
+npx expo start --clear
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The local API defaults to `http://localhost:4100/api/v1`. Set it with `EXPO_PUBLIC_API_BASE_URL` in `.env.local`.
 
-### Other setup steps
+## Architecture
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- `src/theme`: semantic colors, typography, spacing, radii, shadows, dimensions, and component tokens.
+- `src/components/ui`: thin wrappers over the configured Gluestack primitives.
+- `src/components/layout`: shared screen layout conventions.
+- `src/services`: Axios client and request helpers.
+- `src/store`: independent Zustand stores per domain.
+- `src/utils`: responsive, pagination, and API error utilities.
+- `src/config`: typed runtime environment configuration.
 
-## Learn more
+Screens should consume semantic theme values and shared wrappers instead of defining brand colors or arbitrary spacing locally. Light and dark mode are persisted by `themeStore` using AsyncStorage.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Environments
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Use `.env.example` as the template. `.env.local`, `.env.staging`, and `.env.production` contain only client-safe public configuration and are ignored by Git. Never put private backend secrets in Expo public variables.
 
-## Join the community
+## Navigation
 
-Join our community of developers creating universal apps.
+Expo Router owns the route tree under `src/app`. The root layout provides safe-area handling, theme, Gluestack variables, and the router stack. Feature route groups will be added in subsequent implementation phases.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## API and state
+
+Axios is configured from `EXPO_PUBLIC_API_BASE_URL`; authenticated services should use `authHeaders(token)`. Stores own domain state and independent loading/error flags. API errors are normalized through `parseApiError`, and paginated responses should use the shared pagination helpers.
+
+## Expo and EAS
+
+```bash
+npx expo start
+npx expo run:android
+npx expo run:ios
+npx expo export
+eas build --profile development
+eas build --profile preview
+eas build --profile production
+```
+
+`eas.json` defines development, preview/staging, and production profiles. Replace the placeholder EAS project ID in app configuration before a real build.
+
+## Compatibility note
+
+The repository currently contains Expo SDK 57, React Native 0.86, and Expo Router 57. The requested blueprint specifies Expo SDK 54 and Router v6. The existing SDK 57 configuration was preserved because it is the currently installed and booting setup; migrating SDK versions should be a dedicated dependency upgrade with the matching Expo 54 package matrix.
