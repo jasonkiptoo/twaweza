@@ -1,12 +1,11 @@
-import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { useCreditManagementStore } from "@/store/creditManagementStore";
-import { selectLoansHasMore } from "@/store/creditManagementStore";
+import { selectLoansHasMore, useCreditManagementStore } from "@/store/creditManagementStore";
+import { useEffect } from "react";
 
 export function useLoans() {
   const token = useAuthStore((state) => state.token);
   const group = useAuthStore((state) => state.user?.group);
-  const groupId = typeof group === "string" ? group : group?.id ?? group?._id;
+  const groupId = typeof group === "string" ? group : (group?.id ?? group?._id);
   const loans = useCreditManagementStore((state) => state.loans);
   const loading = useCreditManagementStore((state) => state.loansLoading);
   const error = useCreditManagementStore((state) => state.loansError);
@@ -25,6 +24,7 @@ export function useLoans() {
       token && hasMore
         ? fetch(token, { page: page + 1, group: groupId })
         : Promise.resolve(),
-    refresh: () => (token ? fetch(token, { page: 1, group: groupId }) : Promise.resolve()),
+    refresh: () =>
+      token ? fetch(token, { page: 1, group: groupId }) : Promise.resolve(),
   };
 }

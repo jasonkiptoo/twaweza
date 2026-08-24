@@ -1,13 +1,3 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  TextInput,
-} from "react-native";
-import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
@@ -15,6 +5,16 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
+import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    TextInput,
+} from "react-native";
 
 export default function OtpScreen() {
   const { colors } = useTheme();
@@ -128,89 +128,99 @@ export default function OtpScreen() {
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingBottom: 40 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            paddingBottom: 40,
+          }}
         >
           <VStack
             className="gap-7 self-center"
             style={{ maxWidth: 440, width: "100%" }}
           >
-        <Button variant="link" onPress={handleBack} accessibilityLabel="Back">
-          <ArrowLeft size={18} color={colors.primary} />
-          <ButtonText>Back</ButtonText>
-        </Button>
-        <VStack className="gap-2">
-          <Heading size="3xl">Verify your account</Heading>
-          <Text className="text-muted-foreground">
-            Enter the 4-digit code sent to {email || "your email address"}.
-          </Text>
-        </VStack>
-        <VStack className="gap-3">
-          <Text bold>Verification code</Text>
-          <VStack className="flex-row justify-between">
-            <>
-              {digits.map((digit, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => inputs.current[index]?.focus()}
-                >
-                  <TextInput
-                    ref={(input) => {
-                      inputs.current[index] = input;
-                    }}
-                    value={digit}
-                    onChangeText={(value) => updateDigit(index, value)}
-                    onKeyPress={({ nativeEvent }) =>
-                      handleKeyPress(index, nativeEvent.key)
-                    }
-                    keyboardType="number-pad"
-                    maxLength={4}
-                    style={{
-                      width: 64,
-                      height: 58,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor: error ? colors.error : colors.border,
-                      color: colors.textPrimary,
-                      backgroundColor: colors.card,
-                      textAlign: "center",
-                      fontSize: 20,
-                      fontWeight: "700",
-                    }}
-                    accessibilityLabel={`Verification digit ${index + 1}`}
-                  />
-                </Pressable>
-              ))}
-            </>
-          </VStack>
-          {error && <Text className="text-error">{error}</Text>}
-        </VStack>
-        <Button
-          size="lg"
-          onPress={handleVerify}
-          isDisabled={loading || sendingInitialCode}
-        >
-          <ButtonText>
-            {loading
-              ? "Verifying..."
-              : sendingInitialCode
-                ? "Sending code..."
-                : "Verify code"}
-          </ButtonText>
-        </Button>
-        <Text className="text-center text-muted-foreground">
-          {secondsLeft > 0
-            ? `Resend available in ${time}`
-            : "Did not receive a code?"}
-        </Text>
-        <Button
-          variant="link"
-          onPress={handleResend}
-          isDisabled={
-            secondsLeft > 0 || resending || sendingInitialCode || !email
-          }
-        >
-          <ButtonText>{resending ? "Sending..." : "Resend code"}</ButtonText>
-        </Button>
+            <Button
+              variant="link"
+              onPress={handleBack}
+              accessibilityLabel="Back"
+            >
+              <ArrowLeft size={18} color={colors.primary} />
+              <ButtonText>Back</ButtonText>
+            </Button>
+            <VStack className="gap-2">
+              <Heading size="3xl">Verify your account</Heading>
+              <Text className="text-muted-foreground">
+                Enter the 4-digit code sent to {email || "your email address"}.
+              </Text>
+            </VStack>
+            <VStack className="gap-3">
+              <Text bold>Verification code</Text>
+              <VStack className="flex-row justify-between">
+                <>
+                  {digits.map((digit, index) => (
+                    <Pressable
+                      key={index}
+                      onPress={() => inputs.current[index]?.focus()}
+                    >
+                      <TextInput
+                        ref={(input) => {
+                          inputs.current[index] = input;
+                        }}
+                        value={digit}
+                        onChangeText={(value) => updateDigit(index, value)}
+                        onKeyPress={({ nativeEvent }) =>
+                          handleKeyPress(index, nativeEvent.key)
+                        }
+                        keyboardType="number-pad"
+                        maxLength={4}
+                        style={{
+                          width: 64,
+                          height: 58,
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: error ? colors.error : colors.border,
+                          color: colors.textPrimary,
+                          backgroundColor: colors.card,
+                          textAlign: "center",
+                          fontSize: 20,
+                          fontWeight: "700",
+                        }}
+                        accessibilityLabel={`Verification digit ${index + 1}`}
+                      />
+                    </Pressable>
+                  ))}
+                </>
+              </VStack>
+              {error && <Text className="text-error">{error}</Text>}
+            </VStack>
+            <Button
+              size="lg"
+              onPress={handleVerify}
+              isDisabled={loading || sendingInitialCode}
+            >
+              <ButtonText>
+                {loading
+                  ? "Verifying..."
+                  : sendingInitialCode
+                    ? "Sending code..."
+                    : "Verify code"}
+              </ButtonText>
+            </Button>
+            <Text className="text-center text-muted-foreground">
+              {secondsLeft > 0
+                ? `Resend available in ${time}`
+                : "Did not receive a code?"}
+            </Text>
+            <Button
+              variant="link"
+              onPress={handleResend}
+              isDisabled={
+                secondsLeft > 0 || resending || sendingInitialCode || !email
+              }
+            >
+              <ButtonText>
+                {resending ? "Sending..." : "Resend code"}
+              </ButtonText>
+            </Button>
           </VStack>
         </ScrollView>
       </KeyboardAvoidingView>

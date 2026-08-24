@@ -1,13 +1,3 @@
-import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
-import { Link, router } from "expo-router";
-import { Eye, EyeOff, PiggyBank } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { Box } from "@/components/ui/box";
 import { Button, ButtonText } from "@/components/ui/button";
@@ -15,9 +5,19 @@ import { Heading } from "@/components/ui/heading";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { env } from "@/config/env";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
-import { env } from "@/config/env";
+import { Link, router } from "expo-router";
+import { Eye, EyeOff, PiggyBank } from "lucide-react-native";
+import { useState } from "react";
+import {
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    View,
+} from "react-native";
 
 const developmentCredentials = {
   email: "allankorir66@gmail.com",

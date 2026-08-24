@@ -1,5 +1,5 @@
-import { Redirect, Stack } from "expo-router";
 import { useAuthStore } from "@/store/authStore";
+import { Redirect, Stack } from "expo-router";
 
 export default function AdminLayout() {
   const status = useAuthStore((state) => state.status);

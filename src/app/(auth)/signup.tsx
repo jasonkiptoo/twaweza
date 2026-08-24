@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-import { Link, router } from "expo-router";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppInput } from "@/components/ui/AppInput";
@@ -8,10 +5,13 @@ import { FormField } from "@/components/ui/FormField";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { useAuthStore } from "@/store/authStore";
-import { useTheme } from "@/hooks/useTheme";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/authStore";
 import { getApiErrorDetails, getApiErrorMessage } from "@/utils/apiError";
+import { Link, router } from "expo-router";
+import { useEffect, useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 
 type SignupType = "create_group" | "join_group";
 type SignupField =
@@ -230,128 +230,130 @@ export default function SignupScreen() {
             className="flex-1 gap-5 self-center"
             style={{ maxWidth: 480, width: "100%" }}
           >
-        <VStack className="gap-1">
-          <Text style={{ color: colors.textSecondary }}>Step {step} of 2</Text>
-          <Heading size="3xl">Create your account</Heading>
-          <Text style={{ color: colors.textSecondary }}>
-            Join your savings community with a few secure details.
-          </Text>
-        </VStack>
-        {step === 1 ? (
-          <VStack className="gap-4">
-            {field("first_name", "First name", "First name")}
-            {field("last_name", "Last name", "Last name")}
-            {field("phone", "Phone", "+254...")}
-            {field("username", "Username", "Choose a username", {
-              autoCapitalize: "none",
-            })}
-            {usernameStatus && (
-              <Text
-                style={{
-                  color: usernameStatus.startsWith("Username unavailable")
-                    ? colors.error
-                    : usernameStatus.startsWith("Username available")
-                      ? colors.success
-                      : colors.textSecondary,
-                }}
-              >
-                {usernameStatus}
+            <VStack className="gap-1">
+              <Text style={{ color: colors.textSecondary }}>
+                Step {step} of 2
               </Text>
-            )}
-            {field("email", "Email", "you@example.com", {
-              keyboardType: "email-address",
-              autoCapitalize: "none",
-            })}
-            {field("password", "Password", "At least 6 characters", {
-              secureTextEntry: true,
-            })}
-            <AppButton
-              title="Continue"
-              onPress={() => {
-                if (validateAccount()) setStep(2);
-              }}
-            />
-          </VStack>
-        ) : (
-          <VStack className="gap-4">
-            <Text bold>Choose how to join</Text>
-            <VStack className="flex-row gap-3">
-              <AppButton
-                title="Join a group"
-                variant={
-                  form.signupType === "join_group" ? "default" : "outline"
-                }
-                onPress={() => {
-                  update("signupType", "join_group");
-                  setGroupStatus("");
-                }}
-              />
-              <AppButton
-                title="Create a group"
-                variant={
-                  form.signupType === "create_group" ? "default" : "outline"
-                }
-                onPress={() => {
-                  update("signupType", "create_group");
-                  setGroupStatus("");
-                }}
-              />
+              <Heading size="3xl">Create your account</Heading>
+              <Text style={{ color: colors.textSecondary }}>
+                Join your savings community with a few secure details.
+              </Text>
             </VStack>
-            {form.signupType === "join_group" ? (
-              <>
-                {field("groupCode", "Group code", "GROUPCODE", {
-                  autoCapitalize: "characters",
+            {step === 1 ? (
+              <VStack className="gap-4">
+                {field("first_name", "First name", "First name")}
+                {field("last_name", "Last name", "Last name")}
+                {field("phone", "Phone", "+254...")}
+                {field("username", "Username", "Choose a username", {
+                  autoCapitalize: "none",
                 })}
-                <AppButton
-                  title="Verify group code"
-                  variant="outline"
-                  onPress={verifyCode}
-                />
-                {groupStatus && (
+                {usernameStatus && (
                   <Text
                     style={{
-                      color: groupStatus.startsWith("Valid")
-                        ? colors.success
-                        : colors.error,
+                      color: usernameStatus.startsWith("Username unavailable")
+                        ? colors.error
+                        : usernameStatus.startsWith("Username available")
+                          ? colors.success
+                          : colors.textSecondary,
                     }}
                   >
-                    {groupStatus}
+                    {usernameStatus}
                   </Text>
                 )}
-              </>
-            ) : (
-              <>
-                {field("groupName", "Group name", "Your group name")}
-                {field(
-                  "groupDescription",
-                  "Description",
-                  "What is this group saving for?",
-                )}
-                {field("monthlyTarget", "Monthly target", "KES amount", {
-                  keyboardType: "number-pad",
+                {field("email", "Email", "you@example.com", {
+                  keyboardType: "email-address",
+                  autoCapitalize: "none",
                 })}
-                {field("city", "City", "Nairobi")}
-                {field("country", "Country", "Kenya")}
-              </>
+                {field("password", "Password", "At least 6 characters", {
+                  secureTextEntry: true,
+                })}
+                <AppButton
+                  title="Continue"
+                  onPress={() => {
+                    if (validateAccount()) setStep(2);
+                  }}
+                />
+              </VStack>
+            ) : (
+              <VStack className="gap-4">
+                <Text bold>Choose how to join</Text>
+                <VStack className="flex-row gap-3">
+                  <AppButton
+                    title="Join a group"
+                    variant={
+                      form.signupType === "join_group" ? "default" : "outline"
+                    }
+                    onPress={() => {
+                      update("signupType", "join_group");
+                      setGroupStatus("");
+                    }}
+                  />
+                  <AppButton
+                    title="Create a group"
+                    variant={
+                      form.signupType === "create_group" ? "default" : "outline"
+                    }
+                    onPress={() => {
+                      update("signupType", "create_group");
+                      setGroupStatus("");
+                    }}
+                  />
+                </VStack>
+                {form.signupType === "join_group" ? (
+                  <>
+                    {field("groupCode", "Group code", "GROUPCODE", {
+                      autoCapitalize: "characters",
+                    })}
+                    <AppButton
+                      title="Verify group code"
+                      variant="outline"
+                      onPress={verifyCode}
+                    />
+                    {groupStatus && (
+                      <Text
+                        style={{
+                          color: groupStatus.startsWith("Valid")
+                            ? colors.success
+                            : colors.error,
+                        }}
+                      >
+                        {groupStatus}
+                      </Text>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {field("groupName", "Group name", "Your group name")}
+                    {field(
+                      "groupDescription",
+                      "Description",
+                      "What is this group saving for?",
+                    )}
+                    {field("monthlyTarget", "Monthly target", "KES amount", {
+                      keyboardType: "number-pad",
+                    })}
+                    {field("city", "City", "Nairobi")}
+                    {field("country", "Country", "Kenya")}
+                  </>
+                )}
+                <Text style={{ color: colors.error }}>{errors.form}</Text>
+                <AppButton
+                  title="Create account"
+                  loading={loading}
+                  onPress={submit}
+                />
+                <AppButton
+                  title="Back"
+                  variant="ghost"
+                  onPress={() => setStep(1)}
+                />
+              </VStack>
             )}
-            <Text style={{ color: colors.error }}>{errors.form}</Text>
-            <AppButton
-              title="Create account"
-              loading={loading}
-              onPress={submit}
-            />
-            <AppButton
-              title="Back"
-              variant="ghost"
-              onPress={() => setStep(1)}
-            />
-          </VStack>
-        )}
-        <Link href="/(auth)/login">
-          <Text style={{ color: colors.primary }} className="text-center">
-            Already have an account? Sign in
-          </Text>
-        </Link>
+            <Link href="/(auth)/login">
+              <Text style={{ color: colors.primary }} className="text-center">
+                Already have an account? Sign in
+              </Text>
+            </Link>
           </VStack>
         </ScrollView>
       </KeyboardAvoidingView>

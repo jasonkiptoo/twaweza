@@ -1,4 +1,3 @@
-import { Link } from "expo-router";
 import { AppCard } from "@/components/ui/AppCard";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -6,6 +5,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import type { CreditLoan } from "@/types/creditManagement";
 import { formatKes } from "@/utils/currency";
+import { Link } from "expo-router";
 
 export function LoanCard({ loan }: { loan: CreditLoan }) {
   return (

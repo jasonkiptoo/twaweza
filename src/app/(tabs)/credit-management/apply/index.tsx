@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppInput } from "@/components/ui/AppInput";
@@ -7,12 +5,14 @@ import { FormField } from "@/components/ui/FormField";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { useLoanProducts } from "@/hooks/useLoanProducts";
 import { useTheme } from "@/hooks/useTheme";
+import { createCreditApplication } from "@/services/creditManagementApi";
 import { useAuthStore } from "@/store/authStore";
 import { useGroupStore } from "@/store/groupStore";
-import { useLoanProducts } from "@/hooks/useLoanProducts";
-import { createCreditApplication } from "@/services/creditManagementApi";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 
 export default function ApplyScreen() {
   const { colors } = useTheme();
@@ -35,7 +35,7 @@ export default function ApplyScreen() {
     group?._id ??
     (typeof user?.group === "string"
       ? user.group
-      : user?.group?.id ?? user?.group?._id);
+      : (user?.group?.id ?? user?.group?._id));
 
   async function submit() {
     const requestedAmount = Number(amount);
@@ -50,7 +50,9 @@ export default function ApplyScreen() {
     let resolvedGroupId = groupId;
     if (!resolvedGroupId) {
       await fetchGroup(token);
-      resolvedGroupId = useGroupStore.getState().group?.id ?? useGroupStore.getState().group?._id;
+      resolvedGroupId =
+        useGroupStore.getState().group?.id ??
+        useGroupStore.getState().group?._id;
     }
     if (!resolvedGroupId)
       return setError("Your account is not linked to a group yet.");

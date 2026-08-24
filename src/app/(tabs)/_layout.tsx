@@ -1,7 +1,7 @@
-import { Redirect, Tabs } from "expo-router";
-import { Home, Users, WalletCards, UserRound } from "lucide-react-native";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
+import { Redirect, Tabs } from "expo-router";
+import { Home, UserRound, Users, WalletCards } from "lucide-react-native";
 
 export default function TabsLayout() {
   const { colors } = useTheme();

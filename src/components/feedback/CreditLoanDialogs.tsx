@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
 import { AppButton } from "@/components/ui/AppButton";
-import { AppDialog } from "./AppDialog";
 import { AppInput } from "@/components/ui/AppInput";
 import { FormField } from "@/components/ui/FormField";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { useLoanProducts } from "@/hooks/useLoanProducts";
+import { useTheme } from "@/hooks/useTheme";
+import {
+    createCreditApplication,
+    recordCreditPayment,
+} from "@/services/creditManagementApi";
 import { useAuthStore } from "@/store/authStore";
 import { useGroupStore } from "@/store/groupStore";
-import { useTheme } from "@/hooks/useTheme";
-import { useLoanProducts } from "@/hooks/useLoanProducts";
-import {
-  createCreditApplication,
-  recordCreditPayment,
-} from "@/services/creditManagementApi";
+import type {
+    CreditLoan,
+    PaymentMethod
+} from "@/types/creditManagement";
 import { getApiErrorMessage } from "@/utils/apiError";
-import type { CreditLoan, CreditProduct, PaymentMethod } from "@/types/creditManagement";
+import { useEffect, useState } from "react";
+import { AppDialog } from "./AppDialog";
 
 export function CreditLoanRequestDialog({
   open,
@@ -41,7 +44,9 @@ export function CreditLoanRequestDialog({
   const groupId =
     group?.id ??
     group?._id ??
-    (typeof userGroup === "string" ? userGroup : userGroup?.id ?? userGroup?._id);
+    (typeof userGroup === "string"
+      ? userGroup
+      : (userGroup?.id ?? userGroup?._id));
   const product = products.find((item) => item.id === productId);
 
   useEffect(() => {
@@ -83,7 +88,9 @@ export function CreditLoanRequestDialog({
         comments: comments.trim(),
       });
       if (!result.eligible) {
-        setFeedback(`Loan application cannot be submitted: ${(result.reasons ?? []).join(", ") || "review the product terms."}`);
+        setFeedback(
+          `Loan application cannot be submitted: ${(result.reasons ?? []).join(", ") || "review the product terms."}`,
+        );
       } else {
         setFeedback("Loan request submitted successfully.");
         onSuccess?.();
@@ -97,28 +104,63 @@ export function CreditLoanRequestDialog({
   }
 
   return (
-    <AppDialog open={open} title="Request a loan" onClose={onClose} footer={<>
-      <AppButton title="Cancel" variant="outline" onPress={onClose} />
-      <AppButton title="Submit request" loading={loading} onPress={submit} />
-    </>}>
+    <AppDialog
+      open={open}
+      title="Request a loan"
+      onClose={onClose}
+      footer={
+        <>
+          <AppButton title="Cancel" variant="outline" onPress={onClose} />
+          <AppButton
+            title="Submit request"
+            loading={loading}
+            onPress={submit}
+          />
+        </>
+      }
+    >
       <VStack className="gap-4">
         <FormField label="Loan product" required>
           <VStack className="flex-row flex-wrap gap-2">
             {products.map((item) => (
-              <AppButton key={item.id} title={item.name} variant={productId === item.id ? "default" : "outline"} onPress={() => setProductId(item.id)} />
+              <AppButton
+                key={item.id}
+                title={item.name}
+                variant={productId === item.id ? "default" : "outline"}
+                onPress={() => setProductId(item.id)}
+              />
             ))}
           </VStack>
-          {productsLoading && <Text className="text-muted-foreground">Loading products...</Text>}
-          {!productsLoading && !products.length && <Text className="text-muted-foreground">No active loan products are available.</Text>}
+          {productsLoading && (
+            <Text className="text-muted-foreground">Loading products...</Text>
+          )}
+          {!productsLoading && !products.length && (
+            <Text className="text-muted-foreground">
+              No active loan products are available.
+            </Text>
+          )}
         </FormField>
         <FormField label="Requested amount" required>
-          <AppInput value={amount} onChangeText={(value) => setAmount(value.replace(/\D/g, ""))} keyboardType="number-pad" placeholder="KES amount" />
+          <AppInput
+            value={amount}
+            onChangeText={(value) => setAmount(value.replace(/\D/g, ""))}
+            keyboardType="number-pad"
+            placeholder="KES amount"
+          />
         </FormField>
         <FormField label="Purpose" required>
-          <AppInput value={purpose} onChangeText={setPurpose} placeholder="What will the loan support?" />
+          <AppInput
+            value={purpose}
+            onChangeText={setPurpose}
+            placeholder="What will the loan support?"
+          />
         </FormField>
         <FormField label="Comments">
-          <AppInput value={comments} onChangeText={setComments} placeholder="Additional context" />
+          <AppInput
+            value={comments}
+            onChangeText={setComments}
+            placeholder="Additional context"
+          />
         </FormField>
         {feedback && (
           <Text
@@ -191,24 +233,53 @@ export function CreditRepaymentDialog({
   }
 
   return (
-    <AppDialog open={open} title="Repay loan" onClose={onClose} footer={<>
-      <AppButton title="Cancel" variant="outline" onPress={onClose} />
-      <AppButton title="Record repayment" loading={loading} onPress={submit} />
-    </>}>
+    <AppDialog
+      open={open}
+      title="Repay loan"
+      onClose={onClose}
+      footer={
+        <>
+          <AppButton title="Cancel" variant="outline" onPress={onClose} />
+          <AppButton
+            title="Record repayment"
+            loading={loading}
+            onPress={submit}
+          />
+        </>
+      }
+    >
       <VStack className="gap-4">
-        <Text className="text-muted-foreground">Outstanding: {outstanding ?? "Not available"}</Text>
+        <Text className="text-muted-foreground">
+          Outstanding: {outstanding ?? "Not available"}
+        </Text>
         <FormField label="Amount" required>
-          <AppInput value={amount} onChangeText={(value) => setAmount(value.replace(/\D/g, ""))} keyboardType="number-pad" placeholder="KES amount" />
+          <AppInput
+            value={amount}
+            onChangeText={(value) => setAmount(value.replace(/\D/g, ""))}
+            keyboardType="number-pad"
+            placeholder="KES amount"
+          />
         </FormField>
         <FormField label="Payment method" required>
           <VStack className="flex-row flex-wrap gap-2">
-            {(["Mpesa", "Cash", "Bank", "Manual", "Wallet"] as PaymentMethod[]).map((item) => (
-              <AppButton key={item} title={item} variant={method === item ? "default" : "outline"} onPress={() => setMethod(item)} />
+            {(
+              ["Mpesa", "Cash", "Bank", "Manual", "Wallet"] as PaymentMethod[]
+            ).map((item) => (
+              <AppButton
+                key={item}
+                title={item}
+                variant={method === item ? "default" : "outline"}
+                onPress={() => setMethod(item)}
+              />
             ))}
           </VStack>
         </FormField>
         <FormField label="Reference">
-          <AppInput value={reference} onChangeText={setReference} placeholder="Payment reference" />
+          <AppInput
+            value={reference}
+            onChangeText={setReference}
+            placeholder="Payment reference"
+          />
         </FormField>
         {feedback && (
           <Text

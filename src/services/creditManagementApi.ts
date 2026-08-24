@@ -1,15 +1,15 @@
-import { api, authHeaders } from "./api";
 import type {
-  CreditLoan,
-  CreditLoanApplication,
-  CreditLoanSchedule,
-  CreditProduct,
-  LoanDecision,
-  PaymentMethod,
-  PaginatedCredit,
+    CreditLoan,
+    CreditLoanApplication,
+    CreditLoanSchedule,
+    CreditProduct,
+    LoanDecision,
+    PaginatedCredit,
+    PaymentMethod,
 } from "@/types/creditManagement";
 import { normalizeEntityId } from "@/utils/ids";
 import { normalizePagination } from "@/utils/pagination";
+import { api, authHeaders } from "./api";
 
 type ListParams = {
   page?: number;
@@ -21,10 +21,14 @@ type ListParams = {
   active?: boolean;
 };
 function pageResult<T>(data: unknown, key: string): PaginatedCredit<T> {
-  const record = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
-  const nested = record.data && typeof record.data === "object"
-    ? (record.data as Record<string, unknown>)
-    : undefined;
+  const record = (data && typeof data === "object" ? data : {}) as Record<
+    string,
+    unknown
+  >;
+  const nested =
+    record.data && typeof record.data === "object"
+      ? (record.data as Record<string, unknown>)
+      : undefined;
   const values = Array.isArray(record.results)
     ? record.results
     : Array.isArray(record[key])
@@ -135,10 +139,12 @@ export async function getCreditSchedule(
     string,
     unknown
   >;
-  const nested = record.data && typeof record.data === "object"
-    ? (record.data as Record<string, unknown>)
-    : undefined;
-  const schedule = record.schedule ?? record.results ?? nested?.schedule ?? nested?.results;
+  const nested =
+    record.data && typeof record.data === "object"
+      ? (record.data as Record<string, unknown>)
+      : undefined;
+  const schedule =
+    record.schedule ?? record.results ?? nested?.schedule ?? nested?.results;
   return Array.isArray(schedule) ? (schedule as CreditLoanSchedule[]) : [];
 }
 export async function recordCreditPayment(

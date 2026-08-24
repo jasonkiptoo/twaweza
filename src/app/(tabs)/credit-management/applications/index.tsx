@@ -1,18 +1,17 @@
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Screen } from "@/components/layout/Screen";
 import { ApplicationCard } from "@/components/credit-management/ApplicationCard";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
-import { AppSkeleton } from "@/components/ui/AppSkeleton";
-import { Heading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
-import { VStack } from "@/components/ui/vstack";
-import { useLoanApplications } from "@/hooks/useLoanApplications";
+import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
+import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
+import { Heading } from "@/components/ui/heading";
+import { useLoanApplications } from "@/hooks/useLoanApplications";
 import { useRouter } from "expo-router";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 export default function ApplicationsScreen() {
   const router = useRouter();
-  const { applications, loading, error, refresh, hasMore, loadMore } = useLoanApplications();
+  const { applications, loading, error, refresh, hasMore, loadMore } =
+    useLoanApplications();
   return (
     <Screen>
       <View style={styles.container}>
@@ -37,7 +36,12 @@ export default function ApplicationsScreen() {
             <ApplicationCard key={application.id} application={application} />
           ))}
           {hasMore && (
-            <AppButton title="Load more applications" loading={loading} onPress={loadMore} variant="outline" />
+            <AppButton
+              title="Load more applications"
+              loading={loading}
+              onPress={loadMore}
+              variant="outline"
+            />
           )}
         </ScrollView>
         <AppButton

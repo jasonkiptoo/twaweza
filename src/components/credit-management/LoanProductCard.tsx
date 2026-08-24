@@ -1,11 +1,10 @@
-import { Link } from "expo-router";
-import { AppCard } from "@/components/ui/AppCard";
 import { AppButton } from "@/components/ui/AppButton";
-import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
+import { AppCard } from "@/components/ui/AppCard";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { View } from "react-native";
 import type { CreditProduct } from "@/types/creditManagement";
+import { Link } from "expo-router";
+import { View } from "react-native";
 
 export function LoanProductCard({ product }: { product: CreditProduct }) {
   return (

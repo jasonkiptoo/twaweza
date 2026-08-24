@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
-import { ScrollView } from "react-native";
-import { Screen } from "@/components/layout/Screen";
 import { ApplicationCard } from "@/components/credit-management/ApplicationCard";
+import { AppDialog } from "@/components/feedback/AppDialog";
+import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
+import { AppInput } from "@/components/ui/AppInput";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
+import { FormField } from "@/components/ui/FormField";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
 import { useCreditManagementStore } from "@/store/creditManagementStore";
-import { AppDialog } from "@/components/feedback/AppDialog";
-import { AppInput } from "@/components/ui/AppInput";
-import { FormField } from "@/components/ui/FormField";
+import { useEffect, useState } from "react";
+import { ScrollView } from "react-native";
 
 export default function AdminApplications() {
   const token = useAuthStore((state) => state.token);
@@ -39,7 +39,11 @@ export default function AdminApplications() {
   const selectedApplication = items.find((item) => item.id === selected?.id);
   return (
     <Screen>
-      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 32 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 16, paddingBottom: 32 }}
+      >
         <Heading size="3xl">Application review</Heading>
         {feedback && <Text className="text-success">{feedback}</Text>}
         {feedbackError && <Text className="text-error">{feedbackError}</Text>}
@@ -57,9 +61,11 @@ export default function AdminApplications() {
           />
         )}
         {items.map((item) => (
-            <VStack key={item.id} className="gap-2">
+          <VStack key={item.id} className="gap-2">
             <ApplicationCard application={item} />
-            {(["submitted", "pending approval"].includes(item.status?.toLowerCase() ?? "")) && (
+            {["submitted", "pending approval"].includes(
+              item.status?.toLowerCase() ?? "",
+            ) && (
               <VStack className="flex-row gap-3">
                 <AppButton
                   title="Approve"
@@ -72,7 +78,9 @@ export default function AdminApplications() {
                   title="Reject"
                   variant="destructive"
                   loading={deciding}
-                  onPress={() => setSelected({ id: item.id, decision: "reject" })}
+                  onPress={() =>
+                    setSelected({ id: item.id, decision: "reject" })
+                  }
                 />
               </VStack>
             )}
@@ -100,7 +108,12 @@ export default function AdminApplications() {
                 if (!token || !selected) return;
                 try {
                   setFeedbackError("");
-                  await decide(token, selected.id, selected.decision, note.trim() || undefined);
+                  await decide(
+                    token,
+                    selected.id,
+                    selected.decision,
+                    note.trim() || undefined,
+                  );
                   setFeedback("Application updated successfully.");
                 } catch {
                   setFeedbackError("Unable to update application.");
@@ -125,19 +138,33 @@ export default function AdminApplications() {
           </Text>
           {typeof selectedApplication?.member === "object" && (
             <Text>
-              Member: {selectedApplication.member.username ?? selectedApplication.member.email ?? "Member"}
+              Member:{" "}
+              {selectedApplication.member.username ??
+                selectedApplication.member.email ??
+                "Member"}
             </Text>
           )}
           {selectedApplication?.productSnapshot && (
             <Text>
-              Terms: {selectedApplication.productSnapshot.interestRate ?? 0}% {selectedApplication.productSnapshot.interestType ?? ""}, {selectedApplication.productSnapshot.repaymentFrequency ?? ""} for {selectedApplication.productSnapshot.repaymentDurationMonths ?? 0} months
+              Terms: {selectedApplication.productSnapshot.interestRate ?? 0}%{" "}
+              {selectedApplication.productSnapshot.interestType ?? ""},{" "}
+              {selectedApplication.productSnapshot.repaymentFrequency ?? ""} for{" "}
+              {selectedApplication.productSnapshot.repaymentDurationMonths ?? 0}{" "}
+              months
             </Text>
           )}
           <Text>Purpose: {selectedApplication?.purpose ?? "Not provided"}</Text>
           <Text>Comments: {selectedApplication?.comments ?? "None"}</Text>
           <Text>Status: {selectedApplication?.status ?? "Unknown"}</Text>
-          <FormField label={`${selected?.decision === "reject" ? "Rejection" : "Approval"} note`}>
-            <AppInput value={note} onChangeText={setNote} placeholder="Optional note" multiline />
+          <FormField
+            label={`${selected?.decision === "reject" ? "Rejection" : "Approval"} note`}
+          >
+            <AppInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="Optional note"
+              multiline
+            />
           </FormField>
         </VStack>
       </AppDialog>

@@ -1,5 +1,5 @@
-import { api, authHeaders } from "./api";
 import type { GroupDetails } from "@/types/member";
+import { api, authHeaders } from "./api";
 
 export async function getGroupDetails(token: string): Promise<GroupDetails> {
   const { data } = await api.get<

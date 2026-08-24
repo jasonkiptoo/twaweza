@@ -28,7 +28,10 @@ export function ApplicationCard({
         </Text>
         {typeof application.member === "object" && (
           <Text size="sm" className="text-muted-foreground">
-            Applicant: {application.member.username ?? application.member.email ?? "Member"}
+            Applicant:{" "}
+            {application.member.username ??
+              application.member.email ??
+              "Member"}
           </Text>
         )}
       </VStack>

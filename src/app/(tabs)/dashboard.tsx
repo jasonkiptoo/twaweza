@@ -1,5 +1,20 @@
-import { useCallback, useEffect } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import { DepositDialog } from "@/components/feedback/LegacyLoanDialogs";
+import { Screen } from "@/components/layout/Screen";
+import { AppCard } from "@/components/ui/AppCard";
+import { CardSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
+import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
+import { Heading } from "@/components/ui/heading";
+import { IconButton } from "@/components/ui/IconButton";
+import { Text } from "@/components/ui/text";
+import { VStack } from "@/components/ui/vstack";
+import { useTheme } from "@/hooks/useTheme";
+import { useActivityStore } from "@/store/activityStore";
+import { useAuthStore } from "@/store/authStore";
+import { useGroupStore } from "@/store/groupStore";
+import { useUserStore } from "@/store/userStore";
+import { formatKes } from "@/utils/currency";
+import { router } from "expo-router";
 import {
   Bell,
   Eye,
@@ -8,24 +23,8 @@ import {
   Send,
   WalletCards,
 } from "lucide-react-native";
-import { Screen } from "@/components/layout/Screen";
-import { AppCard } from "@/components/ui/AppCard";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
-import { AppSkeleton, CardSkeleton } from "@/components/ui/AppSkeleton";
-import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
-import { Heading } from "@/components/ui/heading";
-import { IconButton } from "@/components/ui/IconButton";
-import { Text } from "@/components/ui/text";
-import { VStack } from "@/components/ui/vstack";
-import { useTheme } from "@/hooks/useTheme";
-import { useAuthStore } from "@/store/authStore";
-import { useGroupStore } from "@/store/groupStore";
-import { useActivityStore } from "@/store/activityStore";
-import { useUserStore } from "@/store/userStore";
-import { useState } from "react";
-import { formatKes } from "@/utils/currency";
-import { DepositDialog } from "@/components/feedback/LegacyLoanDialogs";
-import { router } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 
 export default function DashboardScreen() {
   const { colors } = useTheme();

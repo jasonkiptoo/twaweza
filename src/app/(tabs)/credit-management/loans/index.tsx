@@ -1,21 +1,21 @@
-import { RefreshControl, ScrollView, View } from "react-native";
-import { Screen } from "@/components/layout/Screen";
 import { LoanCard } from "@/components/credit-management/LoanCard";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
-import { AppSkeleton } from "@/components/ui/AppSkeleton";
-import { Heading } from "@/components/ui/heading";
-import { VStack } from "@/components/ui/vstack";
-import { useLoans } from "@/hooks/useLoans";
-import { useRouter } from "expo-router";
+import {
+    CreditLoanRequestDialog,
+    CreditRepaymentDialog,
+} from "@/components/feedback/CreditLoanDialogs";
+import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
+import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
+import { Heading } from "@/components/ui/heading";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/text";
-import {
-  CreditLoanRequestDialog,
-  CreditRepaymentDialog,
-} from "@/components/feedback/CreditLoanDialogs";
+import { VStack } from "@/components/ui/vstack";
+import { useLoans } from "@/hooks/useLoans";
 import type { CreditLoan } from "@/types/creditManagement";
+import { useRouter } from "expo-router";
 import { useState } from "react";
+import { RefreshControl, ScrollView, View } from "react-native";
 
 export default function LoansListScreen() {
   const router = useRouter();
@@ -34,7 +34,8 @@ export default function LoansListScreen() {
       >
         <Heading size="3xl">My loans</Heading>
         <Text className="text-muted-foreground">
-          Request a loan from an available product, or open a loan below to view its schedule and repay it.
+          Request a loan from an available product, or open a loan below to view
+          its schedule and repay it.
         </Text>
         <AppButton
           title="Request a loan"
@@ -72,7 +73,12 @@ export default function LoansListScreen() {
           </VStack>
         ))}
         {hasMore && (
-          <AppButton title="Load more loans" loading={loading} onPress={loadMore} variant="outline" />
+          <AppButton
+            title="Load more loans"
+            loading={loading}
+            onPress={loadMore}
+            variant="outline"
+          />
         )}
       </ScrollView>
       <CreditLoanRequestDialog

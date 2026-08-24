@@ -1,16 +1,16 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { RefreshCw } from "lucide-react-native";
+import { LoanSchedule } from "@/components/credit-management/LoanSchedule";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
 import { AppErrorState } from "@/components/ui/AppStates";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
-import { LoanSchedule } from "@/components/credit-management/LoanSchedule";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useLoanDetails } from "@/hooks/useLoanDetails";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { RefreshCw } from "lucide-react-native";
 
 export default function LoanDetailsScreen() {
   const { loanId } = useLocalSearchParams<{ loanId: string }>();
@@ -59,11 +59,14 @@ export default function LoanDetailsScreen() {
                 </VStack>
                 {loan.nextPaymentDate && (
                   <Text className="text-muted-foreground">
-                    Next payment: {new Date(loan.nextPaymentDate).toLocaleDateString()}
+                    Next payment:{" "}
+                    {new Date(loan.nextPaymentDate).toLocaleDateString()}
                   </Text>
                 )}
                 {loan.overdueDays !== undefined && loan.overdueDays > 0 && (
-                  <Text className="text-error">{loan.overdueDays} days overdue</Text>
+                  <Text className="text-error">
+                    {loan.overdueDays} days overdue
+                  </Text>
                 )}
               </VStack>
             </AppCard>

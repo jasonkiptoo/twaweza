@@ -1,13 +1,13 @@
-import { api, authHeaders } from "./api";
 import type {
-  AuthResponse,
-  LoginPayload,
-  OtpGeneratePayload,
-  OtpResponse,
-  OtpVerifyPayload,
-  SignupPayload,
-  User,
+    AuthResponse,
+    LoginPayload,
+    OtpGeneratePayload,
+    OtpResponse,
+    OtpVerifyPayload,
+    SignupPayload,
+    User,
 } from "@/types/auth";
+import { api, authHeaders } from "./api";
 
 export interface UsernameAvailabilityResponse {
   available?: boolean;

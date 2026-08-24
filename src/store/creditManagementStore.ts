@@ -1,26 +1,26 @@
-import { create } from "zustand";
+import {
+    createCreditApplication,
+    createCreditProduct,
+    decideCreditApplication,
+    getCreditLoan,
+    getCreditSchedule,
+    getPortfolio,
+    listCreditApplications,
+    listCreditLoans,
+    listCreditProducts,
+    recordCreditPayment,
+} from "@/services/creditManagementApi";
 import type { Pagination } from "@/types/api";
 import type {
-  CreditLoan,
-  CreditLoanApplication,
-  CreditLoanSchedule,
-  CreditProduct,
+    CreditLoan,
+    CreditLoanApplication,
+    CreditLoanSchedule,
+    CreditProduct,
+    PaymentMethod,
 } from "@/types/creditManagement";
-import { defaultPagination, hasMore, mergePage } from "@/utils/pagination";
 import { getApiErrorMessage } from "@/utils/apiError";
-import {
-  createCreditApplication,
-  createCreditProduct,
-  decideCreditApplication,
-  listCreditApplications,
-  listCreditLoans,
-  listCreditProducts,
-  getPortfolio,
-  getCreditLoan,
-  getCreditSchedule,
-  recordCreditPayment,
-} from "@/services/creditManagementApi";
-import type { PaymentMethod } from "@/types/creditManagement";
+import { defaultPagination, hasMore, mergePage } from "@/utils/pagination";
+import { create } from "zustand";
 
 interface CreditState {
   products: CreditProduct[];
@@ -98,7 +98,11 @@ interface CreditState {
   recordPayment: (
     token: string,
     loanId: string,
-    payload: { amount: number; paymentMethod: PaymentMethod; reference?: string },
+    payload: {
+      amount: number;
+      paymentMethod: PaymentMethod;
+      reference?: string;
+    },
   ) => Promise<void>;
   clear: () => void;
 }

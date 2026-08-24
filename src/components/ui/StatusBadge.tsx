@@ -1,5 +1,5 @@
-import { AppBadge } from "./AppBadge";
 import { useTheme } from "@/hooks/useTheme";
+import { AppBadge } from "./AppBadge";
 
 const statusKind = {
   Approved: "success",

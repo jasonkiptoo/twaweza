@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { Plus, X } from "lucide-react-native";
+import { LoanProductCard } from "@/components/credit-management/LoanProductCard";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppInput } from "@/components/ui/AppInput";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { FormField } from "@/components/ui/FormField";
 import { Heading } from "@/components/ui/heading";
-import { LoanProductCard } from "@/components/credit-management/LoanProductCard";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { useAuthStore } from "@/store/authStore";
-import { useGroupStore } from "@/store/groupStore";
-import { useCreditManagementStore } from "@/store/creditManagementStore";
-import type { CreditProduct } from "@/types/creditManagement";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/authStore";
+import { useCreditManagementStore } from "@/store/creditManagementStore";
+import { useGroupStore } from "@/store/groupStore";
+import type { CreditProduct } from "@/types/creditManagement";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { Plus, X } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 const interestTypes = [
   { label: "Fixed", value: "fixed" },
@@ -69,7 +69,7 @@ export default function AdminProducts() {
     group?._id ??
     (typeof adminGroup === "string"
       ? adminGroup
-      : adminGroup?.id ?? adminGroup?._id);
+      : (adminGroup?.id ?? adminGroup?._id));
   useEffect(() => {
     if (token) void fetch(token, { page: 1 });
     if (token && !groupId) void fetchGroup(token);
@@ -92,12 +92,20 @@ export default function AdminProducts() {
         latestGroup?._id ??
         (typeof latestUserGroup === "string"
           ? latestUserGroup
-          : latestUserGroup?.id ?? latestUserGroup?._id);
+          : (latestUserGroup?.id ?? latestUserGroup?._id));
     }
     if (!token || !form.name.trim() || !resolvedGroupId)
       return setFeedback("Your account is not linked to a group yet.");
-    if (minAmount < 0 || maxAmount <= 0 || maxAmount < minAmount || interestRate < 0 || duration < 1)
-      return setFeedback("Enter valid minimum and maximum amounts, interest rate, and duration.");
+    if (
+      minAmount < 0 ||
+      maxAmount <= 0 ||
+      maxAmount < minAmount ||
+      interestRate < 0 ||
+      duration < 1
+    )
+      return setFeedback(
+        "Enter valid minimum and maximum amounts, interest rate, and duration.",
+      );
     const payload: Omit<CreditProduct, "id"> = {
       ...form,
       name: form.name.trim(),
@@ -126,7 +134,11 @@ export default function AdminProducts() {
   return (
     <Screen>
       <View style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 96 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 16, paddingBottom: 96 }}
+        >
           <VStack className="flex-row items-center justify-between">
             <Heading size="3xl">Credit products</Heading>
             {showForm && (
@@ -143,41 +155,92 @@ export default function AdminProducts() {
           {showForm && (
             <VStack className="gap-4 rounded-xl border border-border bg-card p-4">
               <FormField label="Product name" required>
-                <AppInput value={form.name} onChangeText={(value) => update("name", value)} />
+                <AppInput
+                  value={form.name}
+                  onChangeText={(value) => update("name", value)}
+                />
               </FormField>
               <FormField label="Description">
-                <AppInput value={form.description} onChangeText={(value) => update("description", value)} />
+                <AppInput
+                  value={form.description}
+                  onChangeText={(value) => update("description", value)}
+                />
               </FormField>
               <FormField label="Minimum amount" required>
-                <AppInput value={form.minAmount} onChangeText={(value) => update("minAmount", value)} keyboardType="number-pad" />
+                <AppInput
+                  value={form.minAmount}
+                  onChangeText={(value) => update("minAmount", value)}
+                  keyboardType="number-pad"
+                />
               </FormField>
               <FormField label="Maximum amount" required>
-                <AppInput value={form.maxAmount} onChangeText={(value) => update("maxAmount", value)} keyboardType="number-pad" />
+                <AppInput
+                  value={form.maxAmount}
+                  onChangeText={(value) => update("maxAmount", value)}
+                  keyboardType="number-pad"
+                />
               </FormField>
               <FormField label="Interest rate" required>
-                <AppInput value={form.interestRate} onChangeText={(value) => update("interestRate", value)} keyboardType="decimal-pad" />
+                <AppInput
+                  value={form.interestRate}
+                  onChangeText={(value) => update("interestRate", value)}
+                  keyboardType="decimal-pad"
+                />
               </FormField>
               <FormField label="Interest type" required>
                 <VStack className="flex-row flex-wrap gap-2">
                   {interestTypes.map((option) => (
-                    <AppButton key={option.value} title={option.label} variant={form.interestType === option.value ? "default" : "outline"} onPress={() => update("interestType", option.value)} />
+                    <AppButton
+                      key={option.value}
+                      title={option.label}
+                      variant={
+                        form.interestType === option.value
+                          ? "default"
+                          : "outline"
+                      }
+                      onPress={() => update("interestType", option.value)}
+                    />
                   ))}
                 </VStack>
               </FormField>
               <FormField label="Repayment frequency" required>
                 <VStack className="flex-row flex-wrap gap-2">
                   {repaymentFrequencies.map((option) => (
-                    <AppButton key={option.value} title={option.label} variant={form.repaymentFrequency === option.value ? "default" : "outline"} onPress={() => update("repaymentFrequency", option.value)} />
+                    <AppButton
+                      key={option.value}
+                      title={option.label}
+                      variant={
+                        form.repaymentFrequency === option.value
+                          ? "default"
+                          : "outline"
+                      }
+                      onPress={() => update("repaymentFrequency", option.value)}
+                    />
                   ))}
                 </VStack>
               </FormField>
               <FormField label="Repayment duration (months)" required>
-                <AppInput value={form.repaymentDurationMonths} onChangeText={(value) => update("repaymentDurationMonths", value)} keyboardType="number-pad" />
+                <AppInput
+                  value={form.repaymentDurationMonths}
+                  onChangeText={(value) =>
+                    update("repaymentDurationMonths", value)
+                  }
+                  keyboardType="number-pad"
+                />
               </FormField>
               <FormField label="Approval mode" required>
                 <VStack className="flex-row flex-wrap gap-2">
                   {approvalModes.map((option) => (
-                    <AppButton key={option.value} title={option.label} variant={form.approvalMode === option.value ? "default" : "outline"} onPress={() => update("approvalMode", option.value)} />
+                    <AppButton
+                      key={option.value}
+                      title={option.label}
+                      variant={
+                        form.approvalMode === option.value
+                          ? "default"
+                          : "outline"
+                      }
+                      onPress={() => update("approvalMode", option.value)}
+                    />
                   ))}
                 </VStack>
               </FormField>
@@ -209,7 +272,9 @@ export default function AdminProducts() {
           onPress={() => setShowForm((value) => !value)}
           style={[styles.fab, { backgroundColor: colors.primary }]}
           accessibilityRole="button"
-          accessibilityLabel={showForm ? "Close product form" : "Add loan product"}
+          accessibilityLabel={
+            showForm ? "Close product form" : "Add loan product"
+          }
           accessibilityHint="Opens the loan product creation form"
         >
           {showForm ? (

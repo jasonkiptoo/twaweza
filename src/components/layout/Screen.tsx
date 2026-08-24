@@ -1,10 +1,10 @@
-import type { PropsWithChildren } from "react";
-import { Pressable, useWindowDimensions, View } from "react-native";
-import { router } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
 import { spacing } from "@/theme";
+import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
+import type { PropsWithChildren } from "react";
+import { Pressable, useWindowDimensions, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export function Screen({ children }: PropsWithChildren) {
   const { colors } = useTheme();
