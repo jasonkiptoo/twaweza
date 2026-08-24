@@ -19,7 +19,7 @@ import { useState } from "react";
 
 export default function LoansListScreen() {
   const router = useRouter();
-  const { loans, loading, error, refresh } = useLoans();
+  const { loans, loading, error, refresh, hasMore, loadMore } = useLoans();
   const [requestOpen, setRequestOpen] = useState(false);
   const [repaymentLoan, setRepaymentLoan] = useState<CreditLoan>();
   return (
@@ -33,6 +33,9 @@ export default function LoansListScreen() {
         contentContainerStyle={{ gap: 16, paddingBottom: 32 }}
       >
         <Heading size="3xl">My loans</Heading>
+        <Text className="text-muted-foreground">
+          Request a loan from an available product, or open a loan below to view its schedule and repay it.
+        </Text>
         <AppButton
           title="Request a loan"
           onPress={() => setRequestOpen(true)}
@@ -68,6 +71,9 @@ export default function LoansListScreen() {
             )}
           </VStack>
         ))}
+        {hasMore && (
+          <AppButton title="Load more loans" loading={loading} onPress={loadMore} variant="outline" />
+        )}
       </ScrollView>
       <CreditLoanRequestDialog
         open={requestOpen}

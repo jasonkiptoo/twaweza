@@ -9,6 +9,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
+import { useGroupStore } from "@/store/groupStore";
 import { useLoanProducts } from "@/hooks/useLoanProducts";
 import { createCreditApplication } from "@/services/creditManagementApi";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -17,6 +18,8 @@ export default function ApplyScreen() {
   const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const group = useGroupStore((state) => state.group);
+  const fetchGroup = useGroupStore((state) => state.fetchGroup);
   const { productId } = useLocalSearchParams<{ productId?: string }>();
   const { products, loading: productsLoading } = useLoanProducts(true);
   const router = useRouter();
@@ -28,12 +31,15 @@ export default function ApplyScreen() {
   const [error, setError] = useState("");
   const product = products.find((item) => item.id === productId);
   const groupId =
-    typeof user?.group === "string" ? user.group : user?.group?.id;
+    group?.id ??
+    group?._id ??
+    (typeof user?.group === "string"
+      ? user.group
+      : user?.group?.id ?? user?.group?._id);
 
   async function submit() {
     const requestedAmount = Number(amount);
-    if (!groupId || !product)
-      return setError("Your group or selected product is unavailable.");
+    if (!product) return setError("Your selected product is unavailable.");
     if (!requestedAmount || requestedAmount <= 0 || !purpose.trim())
       return setError("Enter the amount and purpose.");
     if (product.minAmount !== undefined && requestedAmount < product.minAmount)
@@ -41,12 +47,19 @@ export default function ApplyScreen() {
     if (product.maxAmount !== undefined && requestedAmount > product.maxAmount)
       return setError(`The maximum amount is ${product.maxAmount}.`);
     if (!token) return setError("Your session has expired.");
+    let resolvedGroupId = groupId;
+    if (!resolvedGroupId) {
+      await fetchGroup(token);
+      resolvedGroupId = useGroupStore.getState().group?.id ?? useGroupStore.getState().group?._id;
+    }
+    if (!resolvedGroupId)
+      return setError("Your account is not linked to a group yet.");
     setLoading(true);
     setError("");
     setMessage("");
     try {
       const result = await createCreditApplication(token, {
-        group: groupId,
+        group: resolvedGroupId,
         product: product.id,
         requestedAmount,
         purpose: purpose.trim(),
@@ -54,7 +67,7 @@ export default function ApplyScreen() {
       });
       if (!result.eligible)
         setMessage(
-          `You are not eligible: ${(result.reasons ?? []).join(", ") || "review the product terms."}`,
+          `Loan application cannot be submitted: ${(result.reasons ?? []).join(", ") || "review the product terms."}`,
         );
       else {
         setMessage("Application submitted successfully.");
@@ -115,7 +128,17 @@ export default function ApplyScreen() {
           </FormField>
         </VStack>
         {error && <Text style={{ color: colors.error }}>{error}</Text>}
-        {message && <Text style={{ color: colors.success }}>{message}</Text>}
+        {message && (
+          <Text
+            style={{
+              color: message.startsWith("Loan application")
+                ? colors.error
+                : colors.success,
+            }}
+          >
+            {message}
+          </Text>
+        )}
         <AppButton
           title="Submit application"
           loading={loading}

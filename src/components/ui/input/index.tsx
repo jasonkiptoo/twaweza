@@ -7,6 +7,7 @@ import { withStyleContext } from '@gluestack-ui/utils/nativewind-utils';
 import { cssInterop } from 'nativewind';
 import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
 import { UIIcon } from '@gluestack-ui/core/icon/creator';
+import { useTheme } from '@/hooks/useTheme';
 
 const SCOPE = 'INPUT';
 
@@ -88,7 +89,15 @@ type IInputFieldProps = React.ComponentProps<typeof UIInput.Input> &
 
 const InputField = React.forwardRef<React.ComponentRef<typeof UIInput.Input>, IInputFieldProps>(
   function InputField({ className, ...props }, ref) {
-    return <UIInput.Input ref={ref} {...props} className={inputFieldStyle({ class: className })} />;
+    const { colors } = useTheme();
+    return (
+      <UIInput.Input
+        ref={ref}
+        {...props}
+        placeholderTextColor={props.placeholderTextColor ?? colors.muted}
+        className={inputFieldStyle({ class: className })}
+      />
+    );
   }
 );
 

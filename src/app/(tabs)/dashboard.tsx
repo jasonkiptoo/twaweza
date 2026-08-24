@@ -24,12 +24,8 @@ import { useActivityStore } from "@/store/activityStore";
 import { useUserStore } from "@/store/userStore";
 import { useState } from "react";
 import { formatKes } from "@/utils/currency";
-import {
-  DepositDialog,
-  LegacyLoanRequestDialog,
-} from "@/components/feedback/LegacyLoanDialogs";
-import { CreditRepaymentDialog } from "@/components/feedback/CreditLoanDialogs";
-import { useCreditManagementStore } from "@/store/creditManagementStore";
+import { DepositDialog } from "@/components/feedback/LegacyLoanDialogs";
+import { router } from "expo-router";
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
@@ -53,8 +49,6 @@ export default function DashboardScreen() {
   const [dialog, setDialog] = useState<"deposit" | "request" | "repay" | null>(
     null,
   );
-  const creditLoans = useCreditManagementStore((state) => state.loans);
-  const fetchCreditLoans = useCreditManagementStore((state) => state.fetchLoans);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -67,9 +61,6 @@ export default function DashboardScreen() {
   useEffect(() => {
     void load();
   }, [load]);
-  useEffect(() => {
-    if (token) void fetchCreditLoans(token, { page: 1 });
-  }, [fetchCreditLoans, token]);
 
   async function refresh() {
     setRefreshing(true);
@@ -77,6 +68,9 @@ export default function DashboardScreen() {
     setRefreshing(false);
   }
   const firstName = user?.firstName ?? user?.username ?? "there";
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const isLoading = groupLoading || activityLoading || summaryLoading;
   const hasError = groupError || summaryError || activityError;
 
@@ -96,7 +90,7 @@ export default function DashboardScreen() {
       >
         <View className="flex-row items-center justify-between">
           <VStack className="gap-1">
-            <Text className="text-muted-foreground">Good morning</Text>
+            <Text className="text-muted-foreground">{greeting}</Text>
             <Heading size="2xl">{firstName}</Heading>
           </VStack>
           <IconButton label="Notifications">
@@ -174,7 +168,7 @@ export default function DashboardScreen() {
             </Pressable>
             <Pressable
               className="min-w-[30%] flex-1"
-              onPress={() => setDialog("request")}
+              onPress={() => router.push("/(tabs)/credit-management/products")}
               accessibilityRole="button"
               accessibilityLabel="Request a loan"
             >
@@ -187,7 +181,7 @@ export default function DashboardScreen() {
             </Pressable>
             <Pressable
               className="min-w-[30%] flex-1"
-              onPress={() => setDialog(creditLoans[0] ? "repay" : "request")}
+              onPress={() => router.push("/(tabs)/credit-management/loans")}
               accessibilityRole="button"
               accessibilityLabel="Repay a loan"
             >
@@ -235,18 +229,6 @@ export default function DashboardScreen() {
       <DepositDialog
         open={dialog === "deposit"}
         onClose={() => setDialog(null)}
-      />
-      <LegacyLoanRequestDialog
-        open={dialog === "request"}
-        onClose={() => setDialog(null)}
-        token={token}
-        onSuccess={load}
-      />
-      <CreditRepaymentDialog
-        open={dialog === "repay"}
-        onClose={() => setDialog(null)}
-        loan={creditLoans[0]}
-        onSuccess={load}
       />
     </Screen>
   );

@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import type { CreditLoan } from "@/types/creditManagement";
+import { formatKes } from "@/utils/currency";
 
 export function LoanCard({ loan }: { loan: CreditLoan }) {
   return (
@@ -18,7 +19,12 @@ export function LoanCard({ loan }: { loan: CreditLoan }) {
       <AppCard>
         <VStack className="gap-3">
           <VStack className="gap-1">
-            <Text className="font-semibold">Loan {loan.id}</Text>
+            <Text className="font-semibold">
+              {loan.productSnapshot?.name ??
+                (typeof loan.product === "object"
+                  ? loan.product.name
+                  : "Credit loan")}
+            </Text>
             <StatusBadge status={loan.status} />
           </VStack>
           <VStack className="flex-row justify-between">
@@ -35,10 +41,26 @@ export function LoanCard({ loan }: { loan: CreditLoan }) {
               <CurrencyAmount value={loan.amountRemaining ?? loan.balance} />
             </VStack>
           </VStack>
+          <VStack className="flex-row flex-wrap justify-between gap-2">
+            <Text size="sm" className="text-muted-foreground">
+              Interest: {formatKes(loan.interestAmount)}
+            </Text>
+            <Text size="sm" className="text-muted-foreground">
+              Fees: {formatKes(loan.fees)}
+            </Text>
+            <Text size="sm" className="text-muted-foreground">
+              Paid: {formatKes(loan.totalPaid)}
+            </Text>
+          </VStack>
           {loan.nextPaymentDate && (
             <Text size="sm" className="text-muted-foreground">
               Next payment:{" "}
               {new Date(loan.nextPaymentDate).toLocaleDateString()}
+            </Text>
+          )}
+          {loan.overdueDays !== undefined && loan.overdueDays > 0 && (
+            <Text size="sm" className="text-error">
+              {loan.overdueDays} days overdue
             </Text>
           )}
         </VStack>

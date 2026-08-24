@@ -30,7 +30,12 @@ export default function LoanDetailsScreen() {
             <AppCard>
               <VStack className="gap-3">
                 <VStack className="flex-row items-center justify-between">
-                  <Text className="font-semibold">Loan {loan.id}</Text>
+                  <Text className="font-semibold">
+                    {loan.productSnapshot?.name ??
+                      (typeof loan.product === "object"
+                        ? loan.product.name
+                        : "Credit loan")}
+                  </Text>
                   <StatusBadge status={loan.status} />
                 </VStack>
                 <CurrencyAmount value={loan.principalAmount} size="lg" />
@@ -40,6 +45,26 @@ export default function LoanDetailsScreen() {
                     value={loan.amountRemaining ?? loan.balance}
                   />
                 </VStack>
+                <VStack className="flex-row justify-between">
+                  <Text>Total paid</Text>
+                  <CurrencyAmount value={loan.totalPaid} />
+                </VStack>
+                <VStack className="flex-row justify-between">
+                  <Text>Interest</Text>
+                  <CurrencyAmount value={loan.interestAmount} />
+                </VStack>
+                <VStack className="flex-row justify-between">
+                  <Text>Fees</Text>
+                  <CurrencyAmount value={loan.fees} />
+                </VStack>
+                {loan.nextPaymentDate && (
+                  <Text className="text-muted-foreground">
+                    Next payment: {new Date(loan.nextPaymentDate).toLocaleDateString()}
+                  </Text>
+                )}
+                {loan.overdueDays !== undefined && loan.overdueDays > 0 && (
+                  <Text className="text-error">{loan.overdueDays} days overdue</Text>
+                )}
               </VStack>
             </AppCard>
             <VStack className="gap-3">

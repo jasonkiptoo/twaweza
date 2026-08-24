@@ -6,6 +6,8 @@ import { FormField } from "@/components/ui/FormField";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
+import { useGroupStore } from "@/store/groupStore";
+import { useTheme } from "@/hooks/useTheme";
 import { useLoanProducts } from "@/hooks/useLoanProducts";
 import {
   createCreditApplication,
@@ -23,8 +25,11 @@ export function CreditLoanRequestDialog({
   onClose: () => void;
   onSuccess?: () => void;
 }) {
+  const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const group = useGroupStore((state) => state.group);
+  const fetchGroup = useGroupStore((state) => state.fetchGroup);
   const { products, loading: productsLoading } = useLoanProducts(true);
   const [productId, setProductId] = useState("");
   const [amount, setAmount] = useState("");
@@ -32,7 +37,11 @@ export function CreditLoanRequestDialog({
   const [comments, setComments] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const groupId = typeof user?.group === "string" ? user.group : user?.group?.id;
+  const userGroup = user?.group;
+  const groupId =
+    group?.id ??
+    group?._id ??
+    (typeof userGroup === "string" ? userGroup : userGroup?.id ?? userGroup?._id);
   const product = products.find((item) => item.id === productId);
 
   useEffect(() => {
@@ -47,7 +56,7 @@ export function CreditLoanRequestDialog({
 
   async function submit() {
     const requestedAmount = Number(amount);
-    if (!token || !groupId) return setFeedback("Your session or group is unavailable.");
+    if (!token) return setFeedback("Your session has expired.");
     if (!product) return setFeedback("Select a loan product.");
     if (!requestedAmount || requestedAmount <= 0 || !purpose.trim())
       return setFeedback("Enter the amount and purpose.");
@@ -55,18 +64,26 @@ export function CreditLoanRequestDialog({
       return setFeedback(`The minimum amount is ${product.minAmount}.`);
     if (product.maxAmount !== undefined && requestedAmount > product.maxAmount)
       return setFeedback(`The maximum amount is ${product.maxAmount}.`);
+    let resolvedGroupId = groupId;
+    if (!resolvedGroupId) {
+      await fetchGroup(token);
+      const latestGroup = useGroupStore.getState().group;
+      resolvedGroupId = latestGroup?.id ?? latestGroup?._id;
+    }
+    if (!resolvedGroupId)
+      return setFeedback("Your account is not linked to a group yet.");
     setLoading(true);
     setFeedback("");
     try {
       const result = await createCreditApplication(token, {
-        group: groupId,
+        group: resolvedGroupId,
         product: product.id,
         requestedAmount,
         purpose: purpose.trim(),
         comments: comments.trim(),
       });
       if (!result.eligible) {
-        setFeedback(`Not eligible: ${(result.reasons ?? []).join(", ") || "review the product terms."}`);
+        setFeedback(`Loan application cannot be submitted: ${(result.reasons ?? []).join(", ") || "review the product terms."}`);
       } else {
         setFeedback("Loan request submitted successfully.");
         onSuccess?.();
@@ -103,7 +120,17 @@ export function CreditLoanRequestDialog({
         <FormField label="Comments">
           <AppInput value={comments} onChangeText={setComments} placeholder="Additional context" />
         </FormField>
-        {feedback && <Text className="text-muted-foreground">{feedback}</Text>}
+        {feedback && (
+          <Text
+            style={{
+              color: feedback.includes("successfully")
+                ? colors.success
+                : colors.error,
+            }}
+          >
+            {feedback}
+          </Text>
+        )}
       </VStack>
     </AppDialog>
   );
@@ -120,6 +147,7 @@ export function CreditRepaymentDialog({
   onClose: () => void;
   onSuccess?: () => void;
 }) {
+  const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("Mpesa");
@@ -142,6 +170,8 @@ export function CreditRepaymentDialog({
     if (!value || value <= 0) return setFeedback("Enter a repayment amount.");
     if (outstanding !== undefined && value > outstanding)
       return setFeedback("Repayment cannot exceed the outstanding balance.");
+    if (method !== "Cash" && !reference.trim())
+      return setFeedback("Enter a payment reference.");
     setLoading(true);
     setFeedback("");
     try {
@@ -180,7 +210,17 @@ export function CreditRepaymentDialog({
         <FormField label="Reference">
           <AppInput value={reference} onChangeText={setReference} placeholder="Payment reference" />
         </FormField>
-        {feedback && <Text className="text-muted-foreground">{feedback}</Text>}
+        {feedback && (
+          <Text
+            style={{
+              color: feedback.includes("successfully")
+                ? colors.success
+                : colors.error,
+            }}
+          >
+            {feedback}
+          </Text>
+        )}
       </VStack>
     </AppDialog>
   );

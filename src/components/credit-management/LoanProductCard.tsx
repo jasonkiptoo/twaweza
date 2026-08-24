@@ -4,6 +4,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { View } from "react-native";
 import type { CreditProduct } from "@/types/creditManagement";
 
 export function LoanProductCard({ product }: { product: CreditProduct }) {
@@ -16,10 +17,30 @@ export function LoanProductCard({ product }: { product: CreditProduct }) {
             {product.description ?? "Flexible group credit product."}
           </Text>
         </VStack>
-        <Text size="sm">
-          {product.currency ?? "KES"} {product.minAmount ?? 0} -{" "}
-          {product.maxAmount ?? 0}
-        </Text>
+        <VStack className="gap-2">
+          <Text size="sm">
+            {product.currency ?? "KES"} {product.minAmount ?? 0} -{" "}
+            {product.maxAmount ?? 0}
+          </Text>
+          <View className="flex-row flex-wrap gap-3">
+            {product.interestRate !== undefined && (
+              <Text size="sm" className="text-muted-foreground">
+                Interest: {product.interestRate}%
+                {product.interestType ? ` ${product.interestType}` : ""}
+              </Text>
+            )}
+            {product.repaymentFrequency && (
+              <Text size="sm" className="text-muted-foreground">
+                {product.repaymentFrequency} repayments
+              </Text>
+            )}
+            {product.repaymentDurationMonths !== undefined && (
+              <Text size="sm" className="text-muted-foreground">
+                {product.repaymentDurationMonths} months
+              </Text>
+            )}
+          </View>
+        </VStack>
         <Link
           href={{
             pathname: "/(tabs)/credit-management/products/[productId]",

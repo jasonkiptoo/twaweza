@@ -16,7 +16,11 @@ import {
   listCreditLoans,
   listCreditProducts,
   getPortfolio,
+  getCreditLoan,
+  getCreditSchedule,
+  recordCreditPayment,
 } from "@/services/creditManagementApi";
+import type { PaymentMethod } from "@/types/creditManagement";
 
 interface CreditState {
   products: CreditProduct[];
@@ -35,12 +39,21 @@ interface CreditState {
   portfolioLoading: boolean;
   portfolioError?: string;
   schedule: CreditLoanSchedule[];
+  loanDetails?: CreditLoan;
+  loanDetailsLoading: boolean;
+  loanDetailsError?: string;
+  paymentLoading: boolean;
   creatingProduct: boolean;
   submittingApplication: boolean;
   decidingApplication: boolean;
   fetchProducts: (
     token: string,
-    params?: { page?: number; active?: boolean; search?: string },
+    params?: {
+      page?: number;
+      active?: boolean;
+      search?: string;
+      group?: string;
+    },
   ) => Promise<void>;
   fetchApplications: (
     token: string,
@@ -67,7 +80,7 @@ interface CreditState {
   submitApplication: (
     token: string,
     payload: {
-      group: string;
+      group?: string;
       product: string;
       requestedAmount: number;
       purpose: string;
@@ -81,6 +94,12 @@ interface CreditState {
     note?: string,
   ) => Promise<void>;
   fetchPortfolio: (token: string) => Promise<void>;
+  fetchLoanDetails: (token: string, loanId: string) => Promise<void>;
+  recordPayment: (
+    token: string,
+    loanId: string,
+    payload: { amount: number; paymentMethod: PaymentMethod; reference?: string },
+  ) => Promise<void>;
   clear: () => void;
 }
 
@@ -97,6 +116,8 @@ export const useCreditManagementStore = create<CreditState>((set, get) => ({
   portfolio: [],
   portfolioLoading: false,
   schedule: [],
+  loanDetailsLoading: false,
+  paymentLoading: false,
   creatingProduct: false,
   submittingApplication: false,
   decidingApplication: false,
@@ -198,6 +219,32 @@ export const useCreditManagementStore = create<CreditState>((set, get) => ({
       });
     }
   },
+  fetchLoanDetails: async (token, loanId) => {
+    set({ loanDetailsLoading: true, loanDetailsError: undefined });
+    try {
+      const [loan, schedule] = await Promise.all([
+        getCreditLoan(token, loanId),
+        getCreditSchedule(token, loanId),
+      ]);
+      set({ loanDetails: loan, schedule, loanDetailsLoading: false });
+    } catch (error) {
+      set({
+        loanDetailsLoading: false,
+        loanDetailsError: getApiErrorMessage(error),
+      });
+      throw error;
+    }
+  },
+  recordPayment: async (token, loanId, payload) => {
+    set({ paymentLoading: true });
+    try {
+      await recordCreditPayment(token, loanId, payload);
+      await get().fetchLoanDetails(token, loanId);
+      await get().fetchLoans(token, { page: 1 });
+    } finally {
+      set({ paymentLoading: false });
+    }
+  },
   clear: () =>
     set({
       products: [],
@@ -205,6 +252,8 @@ export const useCreditManagementStore = create<CreditState>((set, get) => ({
       loans: [],
       portfolio: [],
       schedule: [],
+      loanDetails: undefined,
+      loanDetailsError: undefined,
       productsPagination: defaultPagination,
       applicationsPagination: defaultPagination,
       loansPagination: defaultPagination,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Plus, X } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppInput } from "@/components/ui/AppInput";
@@ -11,10 +12,28 @@ import { LoanProductCard } from "@/components/credit-management/LoanProductCard"
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
+import { useGroupStore } from "@/store/groupStore";
 import { useCreditManagementStore } from "@/store/creditManagementStore";
 import type { CreditProduct } from "@/types/creditManagement";
+import { useTheme } from "@/hooks/useTheme";
+import { getApiErrorMessage } from "@/utils/apiError";
+
+const interestTypes = [
+  { label: "Fixed", value: "fixed" },
+  { label: "Reducing balance", value: "reducing_balance" },
+] as const;
+const repaymentFrequencies = [
+  { label: "Weekly", value: "weekly" },
+  { label: "Every two weeks", value: "biweekly" },
+  { label: "Monthly", value: "monthly" },
+] as const;
+const approvalModes = [
+  { label: "Single approval", value: "single" },
+  { label: "Multi-level approval", value: "multi_level" },
+] as const;
 
 export default function AdminProducts() {
+  const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
   const products = useCreditManagementStore((state) => state.products);
   const loading = useCreditManagementStore((state) => state.productsLoading);
@@ -24,31 +43,37 @@ export default function AdminProducts() {
   const createProduct = useCreditManagementStore(
     (state) => state.createProduct,
   );
+  const group = useGroupStore((state) => state.group);
+  const fetchGroup = useGroupStore((state) => state.fetchGroup);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: "",
     description: "",
-    group: "",
     minAmount: "",
     maxAmount: "",
     interestRate: "",
     repaymentDurationMonths: "",
     currency: "KES",
-    interestType: "",
-    repaymentFrequency: "",
+    interestType: "fixed",
+    repaymentFrequency: "monthly",
     gracePeriodDays: "0",
     processingFee: "0",
     insuranceFee: "0",
-    approvalMode: "",
+    approvalMode: "single",
     maxActiveLoans: "1",
   });
   const [feedback, setFeedback] = useState("");
   const adminGroup = useAuthStore((state) => state.user?.group);
+  const groupId =
+    group?.id ??
+    group?._id ??
+    (typeof adminGroup === "string"
+      ? adminGroup
+      : adminGroup?.id ?? adminGroup?._id);
   useEffect(() => {
-    const groupId = typeof adminGroup === "string" ? adminGroup : adminGroup?.id;
-    if (groupId) setForm((current) => ({ ...current, group: current.group || groupId }));
     if (token) void fetch(token, { page: 1 });
-  }, [adminGroup, fetch, token]);
+    if (token && !groupId) void fetchGroup(token);
+  }, [fetch, fetchGroup, groupId, token]);
   function update(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -57,12 +82,28 @@ export default function AdminProducts() {
     const maxAmount = Number(form.maxAmount);
     const interestRate = Number(form.interestRate);
     const duration = Number(form.repaymentDurationMonths);
-    if (!token || !form.name.trim() || !form.group.trim() || !form.interestType.trim() || !form.repaymentFrequency.trim() || !form.approvalMode.trim())
-      return setFeedback("Name, group, interest type, repayment frequency, and approval mode are required.");
-    if (!minAmount || minAmount < 0 || !maxAmount || maxAmount < minAmount || !interestRate || interestRate < 0 || !duration || duration < 1)
+    let resolvedGroupId = groupId;
+    if (token && !resolvedGroupId) {
+      await fetchGroup(token);
+      const latestGroup = useGroupStore.getState().group;
+      const latestUserGroup = useAuthStore.getState().user?.group;
+      resolvedGroupId =
+        latestGroup?.id ??
+        latestGroup?._id ??
+        (typeof latestUserGroup === "string"
+          ? latestUserGroup
+          : latestUserGroup?.id ?? latestUserGroup?._id);
+    }
+    if (!token || !form.name.trim() || !resolvedGroupId)
+      return setFeedback("Your account is not linked to a group yet.");
+    if (minAmount < 0 || maxAmount <= 0 || maxAmount < minAmount || interestRate < 0 || duration < 1)
       return setFeedback("Enter valid minimum and maximum amounts, interest rate, and duration.");
     const payload: Omit<CreditProduct, "id"> = {
       ...form,
+      name: form.name.trim(),
+      description: form.description.trim(),
+      group: resolvedGroupId,
+      currency: form.currency.trim() || "KES",
       active: true,
       minAmount,
       maxAmount,
@@ -79,9 +120,7 @@ export default function AdminProducts() {
       setShowForm(false);
       await fetch(token, { page: 1 });
     } catch (cause) {
-      setFeedback(
-        cause instanceof Error ? cause.message : "Unable to create product.",
-      );
+      setFeedback(getApiErrorMessage(cause));
     }
   }
   return (
@@ -103,26 +142,45 @@ export default function AdminProducts() {
           )}
           {showForm && (
             <VStack className="gap-4 rounded-xl border border-border bg-card p-4">
-              {(
-                ["name", "description", "group", "minAmount", "maxAmount", "interestRate", "repaymentDurationMonths", "interestType", "repaymentFrequency", "approvalMode"] as const
-              ).map((field) => (
-                <FormField key={field} label={field.replace(/([A-Z])/g, " $1")} required={["name", "group", "minAmount", "maxAmount", "interestRate", "repaymentDurationMonths", "interestType", "repaymentFrequency", "approvalMode"].includes(field)}>
-                  <AppInput
-                    value={form[field]}
-                    onChangeText={(value) => update(field, value)}
-                    keyboardType={
-                      [
-                        "minAmount",
-                        "maxAmount",
-                        "interestRate",
-                        "repaymentDurationMonths",
-                      ].includes(field)
-                        ? "number-pad"
-                        : "default"
-                    }
-                  />
-                </FormField>
-              ))}
+              <FormField label="Product name" required>
+                <AppInput value={form.name} onChangeText={(value) => update("name", value)} />
+              </FormField>
+              <FormField label="Description">
+                <AppInput value={form.description} onChangeText={(value) => update("description", value)} />
+              </FormField>
+              <FormField label="Minimum amount" required>
+                <AppInput value={form.minAmount} onChangeText={(value) => update("minAmount", value)} keyboardType="number-pad" />
+              </FormField>
+              <FormField label="Maximum amount" required>
+                <AppInput value={form.maxAmount} onChangeText={(value) => update("maxAmount", value)} keyboardType="number-pad" />
+              </FormField>
+              <FormField label="Interest rate" required>
+                <AppInput value={form.interestRate} onChangeText={(value) => update("interestRate", value)} keyboardType="decimal-pad" />
+              </FormField>
+              <FormField label="Interest type" required>
+                <VStack className="flex-row flex-wrap gap-2">
+                  {interestTypes.map((option) => (
+                    <AppButton key={option.value} title={option.label} variant={form.interestType === option.value ? "default" : "outline"} onPress={() => update("interestType", option.value)} />
+                  ))}
+                </VStack>
+              </FormField>
+              <FormField label="Repayment frequency" required>
+                <VStack className="flex-row flex-wrap gap-2">
+                  {repaymentFrequencies.map((option) => (
+                    <AppButton key={option.value} title={option.label} variant={form.repaymentFrequency === option.value ? "default" : "outline"} onPress={() => update("repaymentFrequency", option.value)} />
+                  ))}
+                </VStack>
+              </FormField>
+              <FormField label="Repayment duration (months)" required>
+                <AppInput value={form.repaymentDurationMonths} onChangeText={(value) => update("repaymentDurationMonths", value)} keyboardType="number-pad" />
+              </FormField>
+              <FormField label="Approval mode" required>
+                <VStack className="flex-row flex-wrap gap-2">
+                  {approvalModes.map((option) => (
+                    <AppButton key={option.value} title={option.label} variant={form.approvalMode === option.value ? "default" : "outline"} onPress={() => update("approvalMode", option.value)} />
+                  ))}
+                </VStack>
+              </FormField>
               <AppButton
                 title="Create product"
                 loading={creating}
@@ -147,14 +205,19 @@ export default function AdminProducts() {
             <LoanProductCard key={product.id} product={product} />
           ))}
         </ScrollView>
-        <AppButton
-          title={showForm ? "Close" : "New product"}
+        <Pressable
           onPress={() => setShowForm((value) => !value)}
-          style={styles.fab}
-          accessibilityLabel={
-            showForm ? "Close product form" : "Add loan product"
-          }
-        />
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          accessibilityRole="button"
+          accessibilityLabel={showForm ? "Close product form" : "Add loan product"}
+          accessibilityHint="Opens the loan product creation form"
+        >
+          {showForm ? (
+            <X size={24} color={colors.onPrimary} />
+          ) : (
+            <Plus size={26} color={colors.onPrimary} />
+          )}
+        </Pressable>
       </View>
     </Screen>
   );
@@ -162,5 +225,19 @@ export default function AdminProducts() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  fab: { position: "absolute", right: 16, bottom: 16, borderRadius: 24 },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 24,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
 });

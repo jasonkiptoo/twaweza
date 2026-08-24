@@ -21,18 +21,28 @@ type ListParams = {
   active?: boolean;
 };
 function pageResult<T>(data: unknown, key: string): PaginatedCredit<T> {
-  const record = (data && typeof data === "object" ? data : {}) as Record<
-    string,
-    unknown
-  >;
+  const record = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
+  const nested = record.data && typeof record.data === "object"
+    ? (record.data as Record<string, unknown>)
+    : undefined;
   const values = Array.isArray(record.results)
     ? record.results
     : Array.isArray(record[key])
       ? record[key]
-      : [];
+      : Array.isArray(nested?.results)
+        ? nested.results
+        : Array.isArray(nested?.[key])
+          ? nested[key]
+          : [];
+  const paginationSource =
+    record.pagination && typeof record.pagination === "object"
+      ? record.pagination
+      : nested?.pagination && typeof nested.pagination === "object"
+        ? nested.pagination
+        : record;
   return {
     results: values as T[],
-    pagination: normalizePagination(record as never),
+    pagination: normalizePagination(paginationSource as never),
   };
 }
 
@@ -44,7 +54,8 @@ export async function listCreditProducts(
     params,
     headers: authHeaders(token),
   });
-  return pageResult<CreditProduct>(data, "products");
+  const result = pageResult<CreditProduct>(data, "products");
+  return { ...result, results: result.results.map(normalizeEntityId) };
 }
 export async function createCreditProduct(
   token: string,
@@ -69,7 +80,7 @@ export async function listCreditApplications(
 export async function createCreditApplication(
   token: string,
   payload: {
-    group: string;
+    group?: string;
     product: string;
     requestedAmount: number;
     purpose: string;
@@ -119,9 +130,16 @@ export async function getCreditSchedule(
     `/credit-management/loans/${loanId}/schedule`,
     { headers: authHeaders(token) },
   );
-  return Array.isArray((data as { schedule?: CreditLoanSchedule[] }).schedule)
-    ? (data as { schedule: CreditLoanSchedule[] }).schedule
-    : [];
+  if (Array.isArray(data)) return data as CreditLoanSchedule[];
+  const record = (data && typeof data === "object" ? data : {}) as Record<
+    string,
+    unknown
+  >;
+  const nested = record.data && typeof record.data === "object"
+    ? (record.data as Record<string, unknown>)
+    : undefined;
+  const schedule = record.schedule ?? record.results ?? nested?.schedule ?? nested?.results;
+  return Array.isArray(schedule) ? (schedule as CreditLoanSchedule[]) : [];
 }
 export async function recordCreditPayment(
   token: string,

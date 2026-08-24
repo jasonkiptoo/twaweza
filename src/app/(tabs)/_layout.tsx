@@ -31,10 +31,11 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
         }}
       />
+      <Tabs.Screen name="loans" options={{ href: null }} />
       <Tabs.Screen
-        name="loans"
+        name="credit-management"
         options={{
-          title: "Loans",
+          title: "Credit",
           tabBarIcon: ({ color, size }) => (
             <WalletCards color={color} size={size} />
           ),
@@ -51,7 +52,6 @@ export default function TabsLayout() {
       />
       <Tabs.Screen name="activity" options={{ href: null }} />
       <Tabs.Screen name="contributions" options={{ href: null }} />
-      <Tabs.Screen name="credit-management" options={{ href: null }} />
     </Tabs>
   );
 }

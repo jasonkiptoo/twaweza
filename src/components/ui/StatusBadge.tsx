@@ -16,8 +16,13 @@ const statusKind = {
 export function StatusBadge({ status }: { status?: string }) {
   const { colors } = useTheme();
   const normalized =
-    status && status in statusKind
-      ? (status as keyof typeof statusKind)
+    status &&
+    (Object.keys(statusKind) as Array<keyof typeof statusKind>).find(
+      (value) => value.toLowerCase() === status.toLowerCase(),
+    )
+      ? (Object.keys(statusKind) as Array<keyof typeof statusKind>).find(
+          (value) => value.toLowerCase() === status?.toLowerCase(),
+        )
       : undefined;
   const kind = normalized ? statusKind[normalized] : "info";
   return (

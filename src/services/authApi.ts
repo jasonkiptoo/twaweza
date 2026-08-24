@@ -13,16 +13,41 @@ export interface UsernameAvailabilityResponse {
   available?: boolean;
 }
 
+type ApiUser = Partial<User> & {
+  _id?: string;
+  first_name?: string;
+  last_name?: string;
+  profile_image?: string;
+};
+
+function normalizeUser(data: ApiUser): User {
+  return {
+    ...data,
+    id: data.id ?? data._id ?? "",
+    firstName: data.firstName ?? data.first_name,
+    lastName: data.lastName ?? data.last_name,
+  };
+}
+
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>("/auth/login", payload);
-  return data;
+  const { data } = await api.post<AuthResponse & ApiUser>(
+    "/auth/login",
+    payload,
+  );
+  return {
+    ...data,
+    user:
+      data.user || data.id || data._id
+        ? normalizeUser(data.user ?? data)
+        : undefined,
+  };
 }
 
 export async function getCurrentUser(token: string): Promise<User> {
-  const { data } = await api.get<User>("/auth/me", {
+  const { data } = await api.get<ApiUser>("/auth/me", {
     headers: authHeaders(token),
   });
-  return data;
+  return normalizeUser(data);
 }
 
 export async function signup(payload: SignupPayload) {

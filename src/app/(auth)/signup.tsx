@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { Link, router } from "expo-router";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
@@ -215,10 +216,20 @@ export default function SignupScreen() {
   );
   return (
     <Screen>
-      <VStack
-        className="flex-1 gap-5 self-center"
-        style={{ maxWidth: 480, width: "100%" }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
+        style={{ flex: 1 }}
       >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        >
+          <VStack
+            className="flex-1 gap-5 self-center"
+            style={{ maxWidth: 480, width: "100%" }}
+          >
         <VStack className="gap-1">
           <Text style={{ color: colors.textSecondary }}>Step {step} of 2</Text>
           <Heading size="3xl">Create your account</Heading>
@@ -235,7 +246,15 @@ export default function SignupScreen() {
               autoCapitalize: "none",
             })}
             {usernameStatus && (
-              <Text style={{ color: colors.textSecondary }}>
+              <Text
+                style={{
+                  color: usernameStatus.startsWith("Username unavailable")
+                    ? colors.error
+                    : usernameStatus.startsWith("Username available")
+                      ? colors.success
+                      : colors.textSecondary,
+                }}
+              >
                 {usernameStatus}
               </Text>
             )}
@@ -333,7 +352,9 @@ export default function SignupScreen() {
             Already have an account? Sign in
           </Text>
         </Link>
-      </VStack>
+          </VStack>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

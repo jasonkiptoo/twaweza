@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, TextInput } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+} from "react-native";
 import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
@@ -104,13 +111,33 @@ export default function OtpScreen() {
     }
   }
 
+  function handleBack() {
+    useAuthStore.getState().clearAuth();
+    if (router.canGoBack()) router.back();
+    else router.replace("/(auth)/login");
+  }
+
   const time = `${String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:${String(secondsLeft % 60).padStart(2, "0")}`;
   return (
     <Screen>
-      <VStack
-        className="flex-1 justify-center gap-7 self-center"
-        style={{ maxWidth: 440, width: "100%" }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
+        style={{ flex: 1 }}
       >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingBottom: 40 }}
+        >
+          <VStack
+            className="gap-7 self-center"
+            style={{ maxWidth: 440, width: "100%" }}
+          >
+        <Button variant="link" onPress={handleBack} accessibilityLabel="Back">
+          <ArrowLeft size={18} color={colors.primary} />
+          <ButtonText>Back</ButtonText>
+        </Button>
         <VStack className="gap-2">
           <Heading size="3xl">Verify your account</Heading>
           <Text className="text-muted-foreground">
@@ -146,7 +173,7 @@ export default function OtpScreen() {
                       color: colors.textPrimary,
                       backgroundColor: colors.card,
                       textAlign: "center",
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: "700",
                     }}
                     accessibilityLabel={`Verification digit ${index + 1}`}
@@ -184,7 +211,9 @@ export default function OtpScreen() {
         >
           <ButtonText>{resending ? "Sending..." : "Resend code"}</ButtonText>
         </Button>
-      </VStack>
+          </VStack>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

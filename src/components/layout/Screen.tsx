@@ -1,5 +1,7 @@
 import type { PropsWithChildren } from "react";
-import { useWindowDimensions } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
+import { router } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/hooks/useTheme";
 import { spacing } from "@/theme";
@@ -17,7 +19,26 @@ export function Screen({ children }: PropsWithChildren) {
         paddingHorizontal: horizontalPadding,
       }}
     >
-      {children}
+      <View style={{ flex: 1 }}>
+        {router.canGoBack() && (
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            hitSlop={10}
+            style={{
+              width: 40,
+              height: 40,
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: spacing.sm,
+            }}
+          >
+            <ArrowLeft size={22} color={colors.textPrimary} />
+          </Pressable>
+        )}
+        {children}
+      </View>
     </SafeAreaView>
   );
 }

@@ -28,20 +28,41 @@ export interface CreditProduct {
 export interface CreditLoanApplication {
   id: string;
   _id?: string;
-  group?: string;
+  group?: string | CreditGroup;
+  member?: string | CreditMember;
   product?: CreditProduct | string;
+  productSnapshot?: CreditProduct;
+  eligibilitySnapshot?: { eligible?: boolean; reasons?: string[] };
   requestedAmount?: number;
   purpose?: string;
   comments?: string;
   status?: string;
 }
 
+export interface CreditGroup {
+  id?: string;
+  _id?: string;
+  name?: string;
+  code?: string;
+}
+
+export interface CreditMember {
+  id?: string;
+  _id?: string;
+  username?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
 export interface CreditLoan {
   id: string;
   _id?: string;
   application?: string | CreditLoanApplication;
-  member?: string;
+  member?: string | CreditMember;
   product?: string | CreditProduct;
+  productSnapshot?: CreditProduct;
+  applicationDetails?: CreditLoanApplication;
   principalAmount?: number;
   interestAmount?: number;
   fees?: number;

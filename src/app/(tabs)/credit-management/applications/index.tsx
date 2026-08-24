@@ -12,7 +12,7 @@ import { useRouter } from "expo-router";
 
 export default function ApplicationsScreen() {
   const router = useRouter();
-  const { applications, loading, error, refresh } = useLoanApplications();
+  const { applications, loading, error, refresh, hasMore, loadMore } = useLoanApplications();
   return (
     <Screen>
       <View style={styles.container}>
@@ -36,6 +36,9 @@ export default function ApplicationsScreen() {
           {applications.map((application) => (
             <ApplicationCard key={application.id} application={application} />
           ))}
+          {hasMore && (
+            <AppButton title="Load more applications" loading={loading} onPress={loadMore} variant="outline" />
+          )}
         </ScrollView>
         <AppButton
           title="Request a loan"

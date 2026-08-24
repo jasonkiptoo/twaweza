@@ -60,13 +60,18 @@ export default function LoginScreen() {
   return (
     <Screen>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
         style={{ flex: 1 }}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            paddingBottom: 32,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           <Box className="w-full self-center" style={{ maxWidth: 440 }}>
@@ -138,17 +143,24 @@ export default function LoginScreen() {
                       />
                       <InputSlot
                         onPress={() => setShowPassword((value) => !value)}
+                        style={{ minWidth: 44, minHeight: 44 }}
                         accessibilityLabel={
                           showPassword ? "Hide password" : "Show password"
                         }
                       >
-                        <InputIcon as={showPassword ? EyeOff : Eye} />
+                        <InputIcon
+                          as={showPassword ? EyeOff : Eye}
+                          color={colors.textSecondary}
+                          size={20}
+                        />
                       </InputSlot>
                     </Input>
                   </VStack>
                 </VStack>
                 {(validationError || error) && (
-                  <Text className="text-error">{validationError || error}</Text>
+                  <Text style={{ color: colors.error }}>
+                    {validationError || error}
+                  </Text>
                 )}
                 <Button
                   size="lg"

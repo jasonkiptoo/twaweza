@@ -11,6 +11,8 @@ import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
 import { useCreditManagementStore } from "@/store/creditManagementStore";
 import { AppDialog } from "@/components/feedback/AppDialog";
+import { AppInput } from "@/components/ui/AppInput";
+import { FormField } from "@/components/ui/FormField";
 
 export default function AdminApplications() {
   const token = useAuthStore((state) => state.token);
@@ -25,6 +27,8 @@ export default function AdminApplications() {
   const fetch = useCreditManagementStore((state) => state.fetchApplications);
   const decide = useCreditManagementStore((state) => state.decideApplication);
   const [feedback, setFeedback] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [note, setNote] = useState("");
   const [selected, setSelected] = useState<{
     id: string;
     decision: "approve" | "reject";
@@ -38,6 +42,7 @@ export default function AdminApplications() {
       <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 32 }}>
         <Heading size="3xl">Application review</Heading>
         {feedback && <Text className="text-success">{feedback}</Text>}
+        {feedbackError && <Text className="text-error">{feedbackError}</Text>}
         {loading && !items.length && <AppSkeleton height={150} />}
         {error && (
           <AppErrorState
@@ -52,23 +57,25 @@ export default function AdminApplications() {
           />
         )}
         {items.map((item) => (
-          <VStack key={item.id} className="gap-2">
+            <VStack key={item.id} className="gap-2">
             <ApplicationCard application={item} />
-            <VStack className="flex-row gap-3">
-              <AppButton
-                title="Approve"
-                loading={deciding}
-                onPress={() =>
-                  setSelected({ id: item.id, decision: "approve" })
-                }
-              />
-              <AppButton
-                title="Reject"
-                variant="destructive"
-                loading={deciding}
-                onPress={() => setSelected({ id: item.id, decision: "reject" })}
-              />
-            </VStack>
+            {(["submitted", "pending approval"].includes(item.status?.toLowerCase() ?? "")) && (
+              <VStack className="flex-row gap-3">
+                <AppButton
+                  title="Approve"
+                  loading={deciding}
+                  onPress={() =>
+                    setSelected({ id: item.id, decision: "approve" })
+                  }
+                />
+                <AppButton
+                  title="Reject"
+                  variant="destructive"
+                  loading={deciding}
+                  onPress={() => setSelected({ id: item.id, decision: "reject" })}
+                />
+              </VStack>
+            )}
           </VStack>
         ))}
       </ScrollView>
@@ -92,11 +99,13 @@ export default function AdminApplications() {
               onPress={async () => {
                 if (!token || !selected) return;
                 try {
-                  await decide(token, selected.id, selected.decision);
+                  setFeedbackError("");
+                  await decide(token, selected.id, selected.decision, note.trim() || undefined);
                   setFeedback("Application updated successfully.");
                 } catch {
-                  setFeedback("Unable to update application.");
+                  setFeedbackError("Unable to update application.");
                 } finally {
+                  setNote("");
                   setSelected(undefined);
                 }
               }}
@@ -106,14 +115,30 @@ export default function AdminApplications() {
       >
         <VStack className="gap-2">
           <Text className="font-semibold">
-            Application {selectedApplication?.id}
+            {selectedApplication?.productSnapshot?.name ??
+              (typeof selectedApplication?.product === "object"
+                ? selectedApplication.product.name
+                : "Loan application")}
           </Text>
           <Text>
-            Requested amount: {selectedApplication?.requestedAmount ?? 0}
+            Requested amount: KES {selectedApplication?.requestedAmount ?? 0}
           </Text>
+          {typeof selectedApplication?.member === "object" && (
+            <Text>
+              Member: {selectedApplication.member.username ?? selectedApplication.member.email ?? "Member"}
+            </Text>
+          )}
+          {selectedApplication?.productSnapshot && (
+            <Text>
+              Terms: {selectedApplication.productSnapshot.interestRate ?? 0}% {selectedApplication.productSnapshot.interestType ?? ""}, {selectedApplication.productSnapshot.repaymentFrequency ?? ""} for {selectedApplication.productSnapshot.repaymentDurationMonths ?? 0} months
+            </Text>
+          )}
           <Text>Purpose: {selectedApplication?.purpose ?? "Not provided"}</Text>
           <Text>Comments: {selectedApplication?.comments ?? "None"}</Text>
           <Text>Status: {selectedApplication?.status ?? "Unknown"}</Text>
+          <FormField label={`${selected?.decision === "reject" ? "Rejection" : "Approval"} note`}>
+            <AppInput value={note} onChangeText={setNote} placeholder="Optional note" multiline />
+          </FormField>
         </VStack>
       </AppDialog>
     </Screen>

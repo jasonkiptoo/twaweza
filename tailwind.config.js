@@ -26,6 +26,8 @@ module.exports = {
         destructive: {
           DEFAULT: 'rgb(var(--destructive) / <alpha-value>)',
         },
+        error: 'rgb(var(--error) / <alpha-value>)',
+        success: 'rgb(var(--success) / <alpha-value>)',
         border: 'rgb(var(--border)/<alpha-value>)',
         input: 'rgb(var(--input)/<alpha-value>)',
         ring: 'rgb(var(--ring) / <alpha-value>)',

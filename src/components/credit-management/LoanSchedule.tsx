@@ -28,9 +28,26 @@ export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
                 : "date unavailable"}
             </Text>
             <VStack className="flex-row justify-between">
+              <Text>Principal</Text>
+              <CurrencyAmount value={item.principal} />
+            </VStack>
+            <VStack className="flex-row justify-between">
+              <Text>Interest</Text>
+              <CurrencyAmount value={item.interest} />
+            </VStack>
+            <VStack className="flex-row justify-between">
+              <Text>Penalty</Text>
+              <CurrencyAmount value={item.penalty} />
+            </VStack>
+            <VStack className="flex-row justify-between">
               <Text>Amount due</Text>
               <CurrencyAmount value={item.amountDue} />
             </VStack>
+            {item.paidAt && (
+              <Text size="sm" className="text-muted-foreground">
+                Paid {new Date(item.paidAt).toLocaleDateString()}
+              </Text>
+            )}
             <VStack className="flex-row justify-between">
               <Text>Paid</Text>
               <CurrencyAmount value={item.amountPaid} />
