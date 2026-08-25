@@ -13,10 +13,10 @@ export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
       </Text>
     );
   return (
-    <VStack className="gap-3">
+    <VStack className="gap-2">
       {schedule.map((item) => (
-        <AppCard key={item.number}>
-          <VStack className="gap-2">
+        <AppCard key={item.number} className="p-3">
+          <VStack className="gap-1">
             <VStack className="flex-row items-center justify-between">
               <Text className="font-semibold">Payment {item.number}</Text>
               <StatusBadge status={item.status} />
@@ -40,7 +40,7 @@ export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
               <CurrencyAmount value={item.penalty} />
             </VStack>
             <VStack className="flex-row justify-between">
-              <Text>Amount due</Text>
+              <Text className="font-semibold">Amount due</Text>
               <CurrencyAmount value={item.amountDue} />
             </VStack>
             {item.paidAt && (

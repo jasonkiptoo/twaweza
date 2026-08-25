@@ -10,7 +10,7 @@ import { useLoanProducts } from "@/hooks/useLoanProducts";
 import { useTheme } from "@/hooks/useTheme";
 import { useRouter } from "expo-router";
 import { Plus, RefreshCw } from "lucide-react-native";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 export default function ProductsScreen() {
   const { colors } = useTheme();
@@ -20,7 +20,11 @@ export default function ProductsScreen() {
   return (
     <Screen>
       <View style={styles.container}>
-        <VStack className="gap-4">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ gap: 12, paddingBottom: 96 }}
+        >
+        <VStack className="gap-3">
           <VStack className="flex-row items-center justify-between">
             <VStack>
               <Text className="text-muted-foreground">Credit management</Text>
@@ -62,6 +66,7 @@ export default function ProductsScreen() {
             onPress={() => router.back()}
           />
         </VStack>
+        </ScrollView>
         <Pressable
           onPress={() => router.push("/admin/credit/products")}
           style={[styles.fab, { backgroundColor: colors.primary }]}

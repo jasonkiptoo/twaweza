@@ -29,14 +29,16 @@ export default function AdminApplications() {
   const [feedback, setFeedback] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
   const [note, setNote] = useState("");
+  const [decisionLoading, setDecisionLoading] = useState<
+    "approve" | "reject"
+  >();
   const [selected, setSelected] = useState<{
-    id: string;
-    decision: "approve" | "reject";
+    application: (typeof items)[number];
   }>();
   useEffect(() => {
     if (token) void fetch(token, { page: 1 });
   }, [fetch, token]);
-  const selectedApplication = items.find((item) => item.id === selected?.id);
+  const selectedApplication = selected?.application;
   return (
     <Screen>
       <ScrollView
@@ -62,34 +64,19 @@ export default function AdminApplications() {
         )}
         {items.map((item) => (
           <VStack key={item.id} className="gap-2">
-            <ApplicationCard application={item} />
-            {["submitted", "pending approval"].includes(
-              item.status?.toLowerCase() ?? "",
-            ) && (
-              <VStack className="flex-row gap-3">
-                <AppButton
-                  title="Approve"
-                  loading={deciding}
-                  onPress={() =>
-                    setSelected({ id: item.id, decision: "approve" })
-                  }
-                />
-                <AppButton
-                  title="Reject"
-                  variant="destructive"
-                  loading={deciding}
-                  onPress={() =>
-                    setSelected({ id: item.id, decision: "reject" })
-                  }
-                />
-              </VStack>
-            )}
+            <ApplicationCard
+              application={item}
+              onPress={() => {
+                console.log("[AdminApplications] opening application", item.id);
+                setSelected({ application: item });
+              }}
+            />
           </VStack>
         ))}
       </ScrollView>
       <AppDialog
         open={Boolean(selectedApplication)}
-        title={`${selected?.decision === "approve" ? "Approve" : "Reject"} application`}
+        title="Loan application details"
         onClose={() => setSelected(undefined)}
         footer={
           <>
@@ -98,31 +85,24 @@ export default function AdminApplications() {
               variant="outline"
               onPress={() => setSelected(undefined)}
             />
-            <AppButton
-              title={selected?.decision === "approve" ? "Approve" : "Reject"}
-              variant={
-                selected?.decision === "reject" ? "destructive" : "default"
-              }
-              loading={deciding}
-              onPress={async () => {
-                if (!token || !selected) return;
-                try {
-                  setFeedbackError("");
-                  await decide(
-                    token,
-                    selected.id,
-                    selected.decision,
-                    note.trim() || undefined,
-                  );
-                  setFeedback("Application updated successfully.");
-                } catch {
-                  setFeedbackError("Unable to update application.");
-                } finally {
-                  setNote("");
-                  setSelected(undefined);
-                }
-              }}
-            />
+            {selectedApplication &&
+            ["submitted", "pending approval"].includes(
+              selectedApplication.status?.toLowerCase() ?? "",
+            ) ? (
+                <>
+                  <AppButton
+                    title="Reject"
+                    variant="destructive"
+                    loading={decisionLoading === "reject"}
+                    onPress={() => void submitDecision("reject")}
+                  />
+                  <AppButton
+                    title="Approve"
+                    loading={decisionLoading === "approve"}
+                    onPress={() => void submitDecision("approve")}
+                  />
+                </>
+              ) : null}
           </>
         }
       >
@@ -156,18 +136,48 @@ export default function AdminApplications() {
           <Text>Purpose: {selectedApplication?.purpose ?? "Not provided"}</Text>
           <Text>Comments: {selectedApplication?.comments ?? "None"}</Text>
           <Text>Status: {selectedApplication?.status ?? "Unknown"}</Text>
-          <FormField
-            label={`${selected?.decision === "reject" ? "Rejection" : "Approval"} note`}
-          >
-            <AppInput
-              value={note}
-              onChangeText={setNote}
-              placeholder="Optional note"
-              multiline
-            />
-          </FormField>
+          {selectedApplication && (
+            <FormField label="Decision note">
+              <AppInput
+                value={note}
+                onChangeText={setNote}
+                placeholder="Optional note"
+                multiline
+              />
+            </FormField>
+          )}
         </VStack>
       </AppDialog>
     </Screen>
   );
+
+  async function submitDecision(decision: "approve" | "reject") {
+    if (!token || !selected) return;
+    setDecisionLoading(decision);
+    console.log("[AdminApplications] submitting decision", {
+      applicationId: selected.application.id,
+      decision,
+    });
+    try {
+      setFeedbackError("");
+      await decide(
+        token,
+        selected.application.id,
+        decision,
+        note.trim() || undefined,
+      );
+      console.log(
+        "[AdminApplications] decision succeeded",
+        selected.application.id,
+      );
+      setFeedback("Application updated successfully.");
+    } catch (cause) {
+      console.error("[AdminApplications] decision failed", cause);
+      setFeedbackError("Unable to update application.");
+    } finally {
+      setDecisionLoading(undefined);
+      setNote("");
+      setSelected(undefined);
+    }
+  }
 }

@@ -83,6 +83,8 @@ interface CreditState {
       group?: string;
       product: string;
       requestedAmount: number;
+      repaymentDurationMonths?: number;
+      repaymentFrequency?: string;
       purpose: string;
       comments?: string;
     },

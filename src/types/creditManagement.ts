@@ -34,6 +34,8 @@ export interface CreditLoanApplication {
   productSnapshot?: CreditProduct;
   eligibilitySnapshot?: { eligible?: boolean; reasons?: string[] };
   requestedAmount?: number;
+  repaymentDurationMonths?: number;
+  repaymentFrequency?: string;
   purpose?: string;
   comments?: string;
   status?: string;
@@ -63,6 +65,8 @@ export interface CreditLoan {
   product?: string | CreditProduct;
   productSnapshot?: CreditProduct;
   applicationDetails?: CreditLoanApplication;
+  principal?: number;
+  interest?: number;
   principalAmount?: number;
   interestAmount?: number;
   fees?: number;

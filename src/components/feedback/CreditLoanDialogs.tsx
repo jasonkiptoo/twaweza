@@ -19,6 +19,17 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import { useEffect, useState } from "react";
 import { AppDialog } from "./AppDialog";
 
+function formatAmountInput(value: string) {
+  const cleaned = value.replace(/,/g, "").replace(/[^0-9.]/g, "");
+  if (!cleaned) return "";
+  const [integerPart = "", ...decimalParts] = cleaned.split(".");
+  const integer = integerPart.replace(/^0+(?=\d)/, "") || "0";
+  const formattedInteger = Number(integer).toLocaleString("en-US");
+  return decimalParts.length
+    ? `${formattedInteger}.${decimalParts.join("").slice(0, 2)}`
+    : formattedInteger;
+}
+
 export function CreditLoanRequestDialog({
   open,
   onClose,
@@ -36,6 +47,7 @@ export function CreditLoanRequestDialog({
   const { products, loading: productsLoading } = useLoanProducts(true);
   const [productId, setProductId] = useState("");
   const [amount, setAmount] = useState("");
+  const [term, setTerm] = useState("");
   const [purpose, setPurpose] = useState("");
   const [comments, setComments] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,11 +60,15 @@ export function CreditLoanRequestDialog({
       ? userGroup
       : (userGroup?.id ?? userGroup?._id));
   const product = products.find((item) => item.id === productId);
+  const repaymentUnit =
+    product?.repaymentFrequency?.toLowerCase() === "weekly" ? "weeks" : "months";
+  const maximumTerm = product?.repaymentDurationMonths ?? 0;
 
   useEffect(() => {
     if (!open) {
       setProductId("");
       setAmount("");
+      setTerm("");
       setPurpose("");
       setComments("");
       setFeedback("");
@@ -60,7 +76,8 @@ export function CreditLoanRequestDialog({
   }, [open]);
 
   async function submit() {
-    const requestedAmount = Number(amount);
+    const requestedAmount = Number(amount.replace(/,/g, ""));
+    const repaymentDurationMonths = Number(term);
     if (!token) return setFeedback("Your session has expired.");
     if (!product) return setFeedback("Select a loan product.");
     if (!requestedAmount || requestedAmount <= 0 || !purpose.trim())
@@ -69,6 +86,12 @@ export function CreditLoanRequestDialog({
       return setFeedback(`The minimum amount is ${product.minAmount}.`);
     if (product.maxAmount !== undefined && requestedAmount > product.maxAmount)
       return setFeedback(`The maximum amount is ${product.maxAmount}.`);
+    if (
+      !repaymentDurationMonths ||
+      repaymentDurationMonths < 1 ||
+      repaymentDurationMonths > maximumTerm
+    )
+      return setFeedback(`Choose a repayment term from 1 to ${maximumTerm} ${repaymentUnit}.`);
     let resolvedGroupId = groupId;
     if (!resolvedGroupId) {
       await fetchGroup(token);
@@ -84,6 +107,8 @@ export function CreditLoanRequestDialog({
         group: resolvedGroupId,
         product: product.id,
         requestedAmount,
+        repaymentDurationMonths,
+        repaymentFrequency: product.repaymentFrequency,
         purpose: purpose.trim(),
         comments: comments.trim(),
       });
@@ -143,9 +168,26 @@ export function CreditLoanRequestDialog({
         <FormField label="Requested amount" required>
           <AppInput
             value={amount}
-            onChangeText={(value) => setAmount(value.replace(/\D/g, ""))}
-            keyboardType="number-pad"
+            onChangeText={(value) => {
+              setAmount(formatAmountInput(value));
+            }}
+            keyboardType="decimal-pad"
             placeholder="KES amount"
+          />
+        </FormField>
+        <FormField label={`Repayment term in ${repaymentUnit} (maximum ${maximumTerm})`} required>
+          <AppInput
+            value={term}
+            onChangeText={(value) => {
+              const digits = value.replace(/\D/g, "");
+              setTerm(
+                maximumTerm && Number(digits) > maximumTerm
+                  ? String(maximumTerm)
+                  : digits,
+              );
+            }}
+            keyboardType="number-pad"
+            placeholder={`1-${maximumTerm} ${repaymentUnit}`}
           />
         </FormField>
         <FormField label="Purpose" required>

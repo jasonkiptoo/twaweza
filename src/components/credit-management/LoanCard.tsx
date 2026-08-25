@@ -16,10 +16,10 @@ export function LoanCard({ loan }: { loan: CreditLoan }) {
       }}
       asChild
     >
-      <AppCard>
-        <VStack className="gap-3">
-          <VStack className="gap-1">
-            <Text className="font-semibold">
+      <AppCard className="p-3">
+        <VStack className="gap-1.5">
+          <VStack className="gap-0.5">
+            <Text className="font-semibold" numberOfLines={1}>
               {loan.productSnapshot?.name ??
                 (typeof loan.product === "object"
                   ? loan.product.name
@@ -32,7 +32,7 @@ export function LoanCard({ loan }: { loan: CreditLoan }) {
               <Text size="sm" className="text-muted-foreground">
                 Principal
               </Text>
-              <CurrencyAmount value={loan.principalAmount} />
+              <CurrencyAmount value={loan.principalAmount ?? loan.principal} />
             </VStack>
             <VStack>
               <Text size="sm" className="text-muted-foreground">
@@ -41,9 +41,9 @@ export function LoanCard({ loan }: { loan: CreditLoan }) {
               <CurrencyAmount value={loan.amountRemaining ?? loan.balance} />
             </VStack>
           </VStack>
-          <VStack className="flex-row flex-wrap justify-between gap-2">
+          <VStack className="flex-row flex-wrap justify-between gap-1">
             <Text size="sm" className="text-muted-foreground">
-              Interest: {formatKes(loan.interestAmount)}
+              Interest: {formatKes(loan.interestAmount ?? loan.interest)}
             </Text>
             <Text size="sm" className="text-muted-foreground">
               Fees: {formatKes(loan.fees)}

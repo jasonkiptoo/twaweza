@@ -8,15 +8,15 @@ import { View } from "react-native";
 
 export function LoanProductCard({ product }: { product: CreditProduct }) {
   return (
-    <AppCard>
-      <VStack className="gap-3">
-        <VStack className="gap-1">
-          <Text className="font-semibold">{product.name}</Text>
-          <Text className="text-muted-foreground">
+    <AppCard className="p-3">
+      <VStack className="gap-2">
+        <VStack className="gap-0.5">
+          <Text className="font-semibold" numberOfLines={1}>{product.name}</Text>
+          <Text className="text-muted-foreground" numberOfLines={1}>
             {product.description ?? "Flexible group credit product."}
           </Text>
         </VStack>
-        <VStack className="gap-2">
+        <VStack className="gap-1">
           <Text size="sm">
             {product.currency ?? "KES"} {product.minAmount ?? 0} -{" "}
             {product.maxAmount ?? 0}

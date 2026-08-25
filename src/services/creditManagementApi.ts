@@ -50,6 +50,14 @@ function pageResult<T>(data: unknown, key: string): PaginatedCredit<T> {
   };
 }
 
+function normalizeCreditLoan(loan: CreditLoan) {
+  return normalizeEntityId({
+    ...loan,
+    principalAmount: loan.principalAmount ?? (loan as CreditLoan & { principal?: number }).principal,
+    interestAmount: loan.interestAmount ?? (loan as CreditLoan & { interest?: number }).interest,
+  });
+}
+
 export async function listCreditProducts(
   token: string,
   params: ListParams = {},
@@ -87,6 +95,8 @@ export async function createCreditApplication(
     group?: string;
     product: string;
     requestedAmount: number;
+    repaymentDurationMonths?: number;
+    repaymentFrequency?: string;
     purpose: string;
     comments?: string;
   },
@@ -105,11 +115,16 @@ export async function decideCreditApplication(
   applicationId: string,
   payload: { decision: LoanDecision; note?: string },
 ) {
+  console.log("[creditManagementApi] deciding application", {
+    applicationId,
+    decision: payload.decision,
+  });
   const { data } = await api.post(
     `/credit-management/applications/${applicationId}/approve`,
     payload,
     { headers: authHeaders(token) },
   );
+  console.log("[creditManagementApi] decision response", data);
   return data;
 }
 export async function listCreditLoans(token: string, params: ListParams = {}) {
@@ -118,13 +133,13 @@ export async function listCreditLoans(token: string, params: ListParams = {}) {
     headers: authHeaders(token),
   });
   const result = pageResult<CreditLoan>(data, "loans");
-  return { ...result, results: result.results.map(normalizeEntityId) };
+  return { ...result, results: result.results.map(normalizeCreditLoan) };
 }
 export async function getCreditLoan(token: string, loanId: string) {
   const { data } = await api.get(`/credit-management/loans/${loanId}`, {
     headers: authHeaders(token),
   });
-  return normalizeEntityId((data as { loan?: CreditLoan }).loan ?? data);
+  return normalizeCreditLoan((data as { loan?: CreditLoan }).loan ?? data);
 }
 export async function getCreditSchedule(
   token: string,

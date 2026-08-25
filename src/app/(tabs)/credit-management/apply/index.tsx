@@ -12,7 +12,18 @@ import { useAuthStore } from "@/store/authStore";
 import { useGroupStore } from "@/store/groupStore";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+function formatAmountInput(value: string) {
+  const cleaned = value.replace(/,/g, "").replace(/[^0-9.]/g, "");
+  if (!cleaned) return "";
+  const [integerPart = "", ...decimalParts] = cleaned.split(".");
+  const integer = integerPart.replace(/^0+(?=\d)/, "") || "0";
+  const formattedInteger = Number(integer).toLocaleString("en-US");
+  return decimalParts.length
+    ? `${formattedInteger}.${decimalParts.join("").slice(0, 2)}`
+    : formattedInteger;
+}
 
 export default function ApplyScreen() {
   const { colors } = useTheme();
@@ -24,12 +35,20 @@ export default function ApplyScreen() {
   const { products, loading: productsLoading } = useLoanProducts(true);
   const router = useRouter();
   const [amount, setAmount] = useState("");
+  const [term, setTerm] = useState("");
   const [purpose, setPurpose] = useState("");
   const [comments, setComments] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const product = products.find((item) => item.id === productId);
+  const repaymentUnit =
+    product?.repaymentFrequency?.toLowerCase() === "weekly" ? "weeks" : "months";
+  const maximumTerm = product?.repaymentDurationMonths ?? 0;
+
+  useEffect(() => {
+    if (product) setTerm(String(product.repaymentDurationMonths ?? ""));
+  }, [product]);
   const groupId =
     group?.id ??
     group?._id ??
@@ -38,7 +57,8 @@ export default function ApplyScreen() {
       : (user?.group?.id ?? user?.group?._id));
 
   async function submit() {
-    const requestedAmount = Number(amount);
+    const requestedAmount = Number(amount.replace(/,/g, ""));
+    const repaymentDurationMonths = Number(term);
     if (!product) return setError("Your selected product is unavailable.");
     if (!requestedAmount || requestedAmount <= 0 || !purpose.trim())
       return setError("Enter the amount and purpose.");
@@ -46,6 +66,12 @@ export default function ApplyScreen() {
       return setError(`The minimum amount is ${product.minAmount}.`);
     if (product.maxAmount !== undefined && requestedAmount > product.maxAmount)
       return setError(`The maximum amount is ${product.maxAmount}.`);
+    if (
+      !repaymentDurationMonths ||
+      repaymentDurationMonths < 1 ||
+      repaymentDurationMonths > maximumTerm
+    )
+      return setError(`Choose a repayment term from 1 to ${maximumTerm} ${repaymentUnit}.`);
     if (!token) return setError("Your session has expired.");
     let resolvedGroupId = groupId;
     if (!resolvedGroupId) {
@@ -64,6 +90,8 @@ export default function ApplyScreen() {
         group: resolvedGroupId,
         product: product.id,
         requestedAmount,
+        repaymentDurationMonths,
+        repaymentFrequency: product.repaymentFrequency,
         purpose: purpose.trim(),
         comments: comments.trim(),
       });
@@ -104,11 +132,27 @@ export default function ApplyScreen() {
             <AppInput
               value={amount}
               onChangeText={(value) => {
-                setAmount(value.replace(/\D/g, ""));
+                setAmount(formatAmountInput(value));
+                setError("");
+              }}
+              keyboardType="decimal-pad"
+              placeholder="KES amount"
+            />
+          </FormField>
+          <FormField label={`Repayment term in ${repaymentUnit} (maximum ${maximumTerm})`} required>
+            <AppInput
+              value={term}
+              onChangeText={(value) => {
+                const digits = value.replace(/\D/g, "");
+                setTerm(
+                  maximumTerm && Number(digits) > maximumTerm
+                    ? String(maximumTerm)
+                    : digits,
+                );
                 setError("");
               }}
               keyboardType="number-pad"
-              placeholder="KES amount"
+              placeholder={`1-${maximumTerm} ${repaymentUnit}`}
             />
           </FormField>
           <FormField label="Purpose" required>
