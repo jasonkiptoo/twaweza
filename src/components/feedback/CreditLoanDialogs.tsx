@@ -236,6 +236,7 @@ export function CreditRepaymentDialog({
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("Mpesa");
   const [reference, setReference] = useState("");
+  const [idempotencyKey, setIdempotencyKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
   const outstanding = loan?.amountRemaining ?? loan?.balance;
@@ -244,6 +245,7 @@ export function CreditRepaymentDialog({
     if (!open) {
       setAmount("");
       setReference("");
+      setIdempotencyKey("");
       setFeedback("");
     }
   }, [open]);
@@ -259,10 +261,15 @@ export function CreditRepaymentDialog({
     setLoading(true);
     setFeedback("");
     try {
+      const paymentKey =
+        idempotencyKey ||
+        `payment-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+      if (!idempotencyKey) setIdempotencyKey(paymentKey);
       await recordCreditPayment(token, loan.id, {
         amount: value,
         paymentMethod: method,
         reference: reference.trim() || undefined,
+        idempotencyKey: paymentKey,
       });
       setFeedback("Repayment recorded successfully.");
       onSuccess?.();

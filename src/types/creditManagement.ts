@@ -2,6 +2,14 @@ import type { Pagination } from "./api";
 
 export type PaymentMethod = "Cash" | "Bank" | "Manual" | "Mpesa" | "Wallet";
 export type LoanDecision = "approve" | "reject";
+export type InterestType = "fixed" | "reducing_balance";
+export type RepaymentFrequency = "weekly" | "biweekly" | "monthly";
+export type ApprovalMode = "single" | "multi_level";
+export type PaymentAllocationComponent =
+  | "Penalty"
+  | "Interest"
+  | "Fee"
+  | "Principal";
 
 export interface CreditProduct {
   id: string;
@@ -13,7 +21,7 @@ export interface CreditProduct {
   minAmount?: number;
   maxAmount?: number;
   currency?: string;
-  interestType?: string;
+  interestType?: InterestType;
   interestRate?: number;
   repaymentFrequency?: string;
   repaymentDurationMonths?: number;
@@ -22,6 +30,7 @@ export interface CreditProduct {
   insuranceFee?: number;
   approvalMode?: string;
   maxActiveLoans?: number;
+  paymentAllocationOrder?: PaymentAllocationComponent[];
   eligibilitySettings?: Record<string, unknown>;
 }
 
@@ -82,6 +91,9 @@ export interface CreditLoan {
 }
 
 export interface CreditLoanSchedule {
+  id?: string;
+  _id?: string;
+  loan?: string;
   number: number;
   dueDate?: string;
   principal?: number;
@@ -91,6 +103,19 @@ export interface CreditLoanSchedule {
   amountPaid?: number;
   status?: string;
   paidAt?: string;
+}
+
+export interface CreditReconciliation {
+  loanId: string;
+  isReconciled: boolean;
+  issues: string[];
+  totals: {
+    scheduleTotal: number;
+    allocatedTotal: number;
+    paymentTotal: number;
+    paymentLedgerTotal: number;
+    balance: number;
+  };
 }
 
 export interface PaginatedCredit<T> {

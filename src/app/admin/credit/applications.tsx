@@ -11,6 +11,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
 import { useCreditManagementStore } from "@/store/creditManagementStore";
+import { getApiErrorMessage } from "@/utils/apiError";
 import { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
 
@@ -173,7 +174,7 @@ export default function AdminApplications() {
       setFeedback("Application updated successfully.");
     } catch (cause) {
       console.error("[AdminApplications] decision failed", cause);
-      setFeedbackError("Unable to update application.");
+      setFeedbackError(getApiErrorMessage(cause));
     } finally {
       setDecisionLoading(undefined);
       setNote("");

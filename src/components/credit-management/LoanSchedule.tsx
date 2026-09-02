@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import type { CreditLoanSchedule } from "@/types/creditManagement";
+import { ScrollView } from "react-native";
 
 export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
   if (!schedule.length)
@@ -13,9 +14,14 @@ export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
       </Text>
     );
   return (
-    <VStack className="gap-2">
+    <ScrollView
+      nestedScrollEnabled
+      showsVerticalScrollIndicator
+      style={{ maxHeight: 360 }}
+      contentContainerStyle={{ gap: 8, paddingRight: 2 }}
+    >
       {schedule.map((item) => (
-        <AppCard key={item.number} className="p-3">
+        <AppCard key={item.id ?? item.number} className="p-3">
           <VStack className="gap-1">
             <VStack className="flex-row items-center justify-between">
               <Text className="font-semibold">Payment {item.number}</Text>
@@ -48,13 +54,15 @@ export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
                 Paid {new Date(item.paidAt).toLocaleDateString()}
               </Text>
             )}
-            <VStack className="flex-row justify-between">
-              <Text>Paid</Text>
-              <CurrencyAmount value={item.amountPaid} />
-            </VStack>
+            {item.amountPaid !== undefined && (
+              <VStack className="flex-row justify-between">
+                <Text>Paid</Text>
+                <CurrencyAmount value={item.amountPaid} />
+              </VStack>
+            )}
           </VStack>
         </AppCard>
       ))}
-    </VStack>
+    </ScrollView>
   );
 }

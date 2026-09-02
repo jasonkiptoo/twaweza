@@ -3,6 +3,7 @@ import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
 import { AppErrorState } from "@/components/ui/AppStates";
+import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -12,7 +13,7 @@ import { useLoanDetails } from "@/hooks/useLoanDetails";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { RefreshCw } from "lucide-react-native";
-import { Pressable, ScrollView } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 export default function LoanDetailsScreen() {
   const { loanId } = useLocalSearchParams<{ loanId: string }>();
@@ -22,23 +23,39 @@ export default function LoanDetailsScreen() {
   return (
     <Screen>
       <ScrollView
+        stickyHeaderIndices={[0]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         <VStack className="gap-4">
-          <VStack className="flex-row items-center justify-between">
-            <Heading size="3xl">Loan details</Heading>
-            <Pressable
-              onPress={() => void refresh()}
-              accessibilityRole="button"
-              accessibilityLabel="Refresh loan details"
-              hitSlop={10}
-            >
-              <RefreshCw size={20} color={colors.primary} />
-            </Pressable>
-          </VStack>
+          <View style={{ backgroundColor: colors.background, paddingBottom: 4 }}>
+            <VStack className="flex-row items-center justify-between">
+              <Heading size="3xl">Loan details</Heading>
+              <Pressable
+                onPress={() => void refresh()}
+                accessibilityRole="button"
+                accessibilityLabel="Refresh loan details"
+                hitSlop={10}
+              >
+                <RefreshCw size={20} color={colors.primary} />
+              </Pressable>
+            </VStack>
+          </View>
           {error && <AppErrorState message={error} onRetry={refresh} />}
-          {loading && !loan && <Text>Loading loan...</Text>}
+          {loading && !loan && (
+            <AppCard>
+              <VStack className="gap-3">
+                <VStack className="flex-row items-center justify-between">
+                  <AppSkeleton height={18} width="45%" />
+                  <AppSkeleton height={24} width={92} radius={999} />
+                </VStack>
+                <AppSkeleton height={32} width="42%" />
+                <AppSkeleton height={16} width="100%" />
+                <AppSkeleton height={16} width="88%" />
+                <AppSkeleton height={16} width="76%" />
+              </VStack>
+            </AppCard>
+          )}
           {loan && (
             <>
               <AppCard>

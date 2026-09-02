@@ -113,6 +113,7 @@ export default function AdminProducts() {
       group: resolvedGroupId,
       currency: form.currency.trim() || "KES",
       active: true,
+      interestType: form.interestType as CreditProduct["interestType"],
       minAmount,
       maxAmount,
       interestRate,

@@ -1,17 +1,17 @@
-import { LoanCard } from "@/components/credit-management/LoanCard";
+import { LoanCard, LoanCardSkeleton } from "@/components/credit-management/LoanCard";
 import {
     CreditLoanRequestDialog,
     CreditRepaymentDialog,
 } from "@/components/feedback/CreditLoanDialogs";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
-import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { Heading } from "@/components/ui/heading";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useLoans } from "@/hooks/useLoans";
+import { useTheme } from "@/hooks/useTheme";
 import type { CreditLoan } from "@/types/creditManagement";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -20,11 +20,13 @@ import { RefreshControl, ScrollView, View } from "react-native";
 export default function LoansListScreen() {
   const router = useRouter();
   const { loans, loading, error, refresh, hasMore, loadMore } = useLoans();
+  const { colors } = useTheme();
   const [requestOpen, setRequestOpen] = useState(false);
   const [repaymentLoan, setRepaymentLoan] = useState<CreditLoan>();
   return (
     <Screen>
       <ScrollView
+        stickyHeaderIndices={[0]}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         refreshControl={
@@ -32,7 +34,9 @@ export default function LoansListScreen() {
         }
         contentContainerStyle={{ gap: 16, paddingBottom: 32 }}
       >
-        <Heading size="3xl">My loans</Heading>
+        <View style={{ backgroundColor: colors.background, paddingBottom: 4 }}>
+          <Heading size="3xl">My loans</Heading>
+        </View>
         <Text className="text-muted-foreground">
           Request a loan from an available product, or open a loan below to view
           its schedule and repay it.
@@ -43,8 +47,8 @@ export default function LoansListScreen() {
         />
         {loading && !loans.length && (
           <VStack className="gap-3">
-            <AppSkeleton height={150} />
-            <AppSkeleton height={150} />
+            <LoanCardSkeleton />
+            <LoanCardSkeleton />
           </VStack>
         )}
         {error && <AppErrorState message={error} onRetry={refresh} />}

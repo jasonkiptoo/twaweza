@@ -25,6 +25,7 @@ export default function PaymentScreen() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("Mpesa");
   const [reference, setReference] = useState("");
+  const [idempotencyKey, setIdempotencyKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -42,10 +43,15 @@ export default function PaymentScreen() {
     setLoading(true);
     setError("");
     try {
+      const paymentKey =
+        idempotencyKey ||
+        `payment-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+      if (!idempotencyKey) setIdempotencyKey(paymentKey);
       await recordCreditPayment(token, loanId, {
         amount: value,
         paymentMethod: method,
         reference: reference.trim(),
+        idempotencyKey: paymentKey,
       });
       await refreshLoan();
       setSuccess("Payment recorded successfully.");

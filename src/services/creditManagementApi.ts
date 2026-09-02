@@ -3,6 +3,7 @@ import type {
     CreditLoanApplication,
     CreditLoanSchedule,
     CreditProduct,
+    CreditReconciliation,
     LoanDecision,
     PaginatedCredit,
     PaymentMethod,
@@ -149,7 +150,8 @@ export async function getCreditSchedule(
     `/credit-management/loans/${loanId}/schedule`,
     { headers: authHeaders(token) },
   );
-  if (Array.isArray(data)) return data as CreditLoanSchedule[];
+  if (Array.isArray(data))
+    return (data as CreditLoanSchedule[]).map(normalizeEntityId);
   const record = (data && typeof data === "object" ? data : {}) as Record<
     string,
     unknown
@@ -160,19 +162,31 @@ export async function getCreditSchedule(
       : undefined;
   const schedule =
     record.schedule ?? record.results ?? nested?.schedule ?? nested?.results;
-  return Array.isArray(schedule) ? (schedule as CreditLoanSchedule[]) : [];
+  return Array.isArray(schedule)
+    ? (schedule as CreditLoanSchedule[]).map(normalizeEntityId)
+    : [];
 }
 export async function recordCreditPayment(
   token: string,
   loanId: string,
-  payload: { amount: number; paymentMethod: PaymentMethod; reference?: string },
+  payload: {
+    amount: number;
+    paymentMethod: PaymentMethod;
+    reference?: string;
+    idempotencyKey: string;
+  },
 ) {
   const { data } = await api.post(
     `/credit-management/loans/${loanId}/payments`,
     payload,
-    { headers: authHeaders(token) },
+    {
+      headers: {
+        ...authHeaders(token),
+        "Idempotency-Key": payload.idempotencyKey,
+      },
+    },
   );
-  return data;
+  return normalizeCreditLoan((data as { loan?: CreditLoan }).loan ?? data);
 }
 export async function getPortfolio(token: string, params: ListParams = {}) {
   const { data } = await api.get("/credit-management/reports/portfolio", {
@@ -182,3 +196,25 @@ export async function getPortfolio(token: string, params: ListParams = {}) {
   const result = pageResult<CreditLoan>(data, "loans");
   return { ...result, results: result.results.map(normalizeEntityId) };
 }
+
+export async function reconcileCreditLoan(token: string, loanId: string) {
+  const { data } = await api.get(
+    `/credit-management/loans/${loanId}/reconciliation`,
+    { headers: authHeaders(token) },
+  );
+  return data as CreditReconciliation;
+}
+
+export const creditManagementApi = {
+  listProducts: listCreditProducts,
+  createProduct: createCreditProduct,
+  listApplications: listCreditApplications,
+  submitApplication: createCreditApplication,
+  approveApplication: decideCreditApplication,
+  listLoans: listCreditLoans,
+  getLoanById: getCreditLoan,
+  getLoanSchedule: getCreditSchedule,
+  recordPayment: recordCreditPayment,
+  reconcileLoan: reconcileCreditLoan,
+  portfolioReport: getPortfolio,
+};

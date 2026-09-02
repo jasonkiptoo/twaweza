@@ -104,6 +104,7 @@ interface CreditState {
       amount: number;
       paymentMethod: PaymentMethod;
       reference?: string;
+      idempotencyKey: string;
     },
   ) => Promise<void>;
   clear: () => void;
@@ -209,9 +210,11 @@ export const useCreditManagementStore = create<CreditState>((set, get) => ({
       await decideCreditApplication(token, id, { decision, note });
       await get().fetchApplications(token, { page: 1 });
       await get().fetchLoans(token, { page: 1 });
-    } finally {
+    } catch (error) {
       set({ decidingApplication: false });
+      throw error;
     }
+    set({ decidingApplication: false });
   },
   fetchPortfolio: async (token) => {
     set({ portfolioLoading: true, portfolioError: undefined });

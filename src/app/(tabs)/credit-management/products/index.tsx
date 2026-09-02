@@ -8,12 +8,15 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useLoanProducts } from "@/hooks/useLoanProducts";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/authStore";
+import { isAdmin } from "@/types/auth";
 import { useRouter } from "expo-router";
 import { Plus, RefreshCw } from "lucide-react-native";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 export default function ProductsScreen() {
   const { colors } = useTheme();
+  const user = useAuthStore((state) => state.user);
   const { products, loading, error, refresh, hasMore, loadMore } =
     useLoanProducts(true);
   const router = useRouter();
@@ -30,11 +33,14 @@ export default function ProductsScreen() {
               <Text className="text-muted-foreground">Credit management</Text>
               <Heading size="3xl">Loan products</Heading>
             </VStack>
-            <RefreshCw
-              size={20}
+            <Pressable
               onPress={() => void refresh()}
+              accessibilityRole="button"
               accessibilityLabel="Refresh loan products"
-            />
+              hitSlop={10}
+            >
+              <RefreshCw size={20} color={colors.primary} />
+            </Pressable>
           </VStack>
           {loading && !products.length && (
             <VStack className="gap-3">
@@ -67,15 +73,17 @@ export default function ProductsScreen() {
           />
         </VStack>
         </ScrollView>
-        <Pressable
-          onPress={() => router.push("/admin/credit/products")}
-          style={[styles.fab, { backgroundColor: colors.primary }]}
-          accessibilityRole="button"
-          accessibilityLabel="Add loan product"
-          accessibilityHint="Opens the loan product creation form"
-        >
-          <Plus size={26} color={colors.onPrimary} />
-        </Pressable>
+        {isAdmin(user) && (
+          <Pressable
+            onPress={() => router.push("/admin/credit/products")}
+            style={[styles.fab, { backgroundColor: colors.primary }]}
+            accessibilityRole="button"
+            accessibilityLabel="Add loan product"
+            accessibilityHint="Opens the loan product creation form"
+          >
+            <Plus size={26} color={colors.onPrimary} />
+          </Pressable>
+        )}
       </View>
     </Screen>
   );
