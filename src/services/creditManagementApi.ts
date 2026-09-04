@@ -79,6 +79,18 @@ export async function createCreditProduct(
   });
   return normalizeEntityId(data);
 }
+
+export async function updateCreditProduct(
+  token: string,
+  productId: string,
+  payload: Partial<CreditProduct>,
+) {
+  const { data } = await api.put(`/credit-management/products/${productId}`, payload, {
+    headers: authHeaders(token),
+  });
+  return normalizeEntityId(data);
+}
+
 export async function listCreditApplications(
   token: string,
   params: ListParams = {},
@@ -208,6 +220,7 @@ export async function reconcileCreditLoan(token: string, loanId: string) {
 export const creditManagementApi = {
   listProducts: listCreditProducts,
   createProduct: createCreditProduct,
+  updateProduct: updateCreditProduct,
   listApplications: listCreditApplications,
   submitApplication: createCreditApplication,
   approveApplication: decideCreditApplication,

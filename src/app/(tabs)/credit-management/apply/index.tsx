@@ -12,7 +12,9 @@ import { useAuthStore } from "@/store/authStore";
 import { useGroupStore } from "@/store/groupStore";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { AlertCircle, CheckCircle } from "lucide-react-native";
 import { useEffect, useState } from "react";
+import { ScrollView, View } from "react-native";
 
 function formatAmountInput(value: string) {
   const cleaned = value.replace(/,/g, "").replace(/[^0-9.]/g, "");
@@ -41,6 +43,7 @@ export default function ApplyScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [eligibilityReasons, setEligibilityReasons] = useState<string[]>([]);
   const product = products.find((item) => item.id === productId);
   const repaymentUnit =
     product?.repaymentFrequency?.toLowerCase() === "weekly" ? "weeks" : "months";
@@ -85,6 +88,7 @@ export default function ApplyScreen() {
     setLoading(true);
     setError("");
     setMessage("");
+    setEligibilityReasons([]);
     try {
       const result = await createCreditApplication(token, {
         group: resolvedGroupId,
@@ -95,15 +99,15 @@ export default function ApplyScreen() {
         purpose: purpose.trim(),
         comments: comments.trim(),
       });
-      if (!result.eligible)
-        setMessage(
-          `Loan application cannot be submitted: ${(result.reasons ?? []).join(", ") || "review the product terms."}`,
-        );
-      else {
-        setMessage("Application submitted successfully.");
+      if (!result.eligible) {
+        // ✅ Enhanced: Show eligibility errors in structured format
+        setEligibilityReasons(result.reasons ?? []);
+        setMessage("❌ Cannot submit application - eligibility issues found");
+      } else {
+        setMessage("✅ Application submitted successfully!");
         setTimeout(
           () => router.replace("/(tabs)/credit-management/applications"),
-          700,
+          1000,
         );
       }
     } catch (cause) {
@@ -115,11 +119,13 @@ export default function ApplyScreen() {
 
   return (
     <Screen>
-      <VStack className="gap-5">
-        <Heading size="3xl">Apply for a loan</Heading>
-        <Text className="text-muted-foreground">
-          Review the selected product, then submit your application.
-        </Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingBottom: 32 }}>
+        <VStack className="gap-2">
+          <Heading size="3xl">Apply for a loan</Heading>
+          <Text className="text-muted-foreground">
+            Review the selected product, then submit your application.
+          </Text>
+        </VStack>
         <VStack className="gap-4">
           <FormField label="Selected product" required>
             <Text className="rounded-lg border border-border bg-card p-3">
@@ -173,24 +179,74 @@ export default function ApplyScreen() {
             />
           </FormField>
         </VStack>
-        {error && <Text style={{ color: colors.error }}>{error}</Text>}
-        {message && (
-          <Text
-            style={{
-              color: message.startsWith("Loan application")
-                ? colors.error
-                : colors.success,
-            }}
-          >
-            {message}
-          </Text>
+
+        {product && (
+          <View className="bg-muted rounded-lg p-3">
+            <VStack className="gap-2">
+              <Text className="font-semibold">Product details</Text>
+              <Text className="text-sm">
+                Amount: {product.currency || "KES"} {product.minAmount} - {product.maxAmount}
+              </Text>
+              <Text className="text-sm">
+                Interest: {product.interestRate}% ({product.interestType})
+              </Text>
+              <Text className="text-sm">
+                Repayment: {product.repaymentFrequency} for {product.repaymentDurationMonths} months
+              </Text>
+              {product.maxActiveLoans && (
+                <Text className="text-sm text-yellow-600">
+                  📋 Note: Max {product.maxActiveLoans} active loan(s) per member
+                </Text>
+              )}
+            </VStack>
+          </View>
+        )}
+
+        {/* ✅ Enhanced error display */}
+        {error && (
+          <View className="bg-red-50 border border-red-200 rounded-lg p-3 flex-row gap-3">
+            <AlertCircle color={colors.error} size={20} />
+            <Text style={{ color: colors.error }} className="flex-1">
+              {error}
+            </Text>
+          </View>
+        )}
+
+        {/* ✅ Eligibility issues display */}
+        {eligibilityReasons.length > 0 && (
+          <VStack className="gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+            <View className="flex-row gap-2 items-center">
+              <AlertCircle color={colors.error} size={20} />
+              <Text className="font-semibold" style={{ color: colors.error }}>
+                Eligibility issues:
+              </Text>
+            </View>
+            {eligibilityReasons.map((reason, idx) => (
+              <Text key={idx} className="text-sm" style={{ color: colors.error }}>
+                • {reason}
+              </Text>
+            ))}
+            <Text className="text-xs text-muted-foreground mt-2">
+              Please contact your group admin if you have questions about these requirements.
+            </Text>
+          </VStack>
+        )}
+
+        {/* ✅ Success message */}
+        {message && !eligibilityReasons.length && (
+          <View className="bg-green-50 border border-green-200 rounded-lg p-3 flex-row gap-3">
+            <CheckCircle color={colors.success} size={20} />
+            <Text style={{ color: colors.success }} className="flex-1">
+              {message}
+            </Text>
+          </View>
         )}
         <AppButton
           title="Submit application"
           loading={loading}
           onPress={submit}
         />
-      </VStack>
+      </ScrollView>
     </Screen>
   );
 }

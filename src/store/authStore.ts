@@ -61,6 +61,7 @@ interface AuthState {
   error?: string;
   otpRequired: boolean;
   otpVerified: boolean;
+  skipAutoResendOtp: boolean;  // ✅ NEW: Skip auto-resend after signup
   login: (payload: LoginPayload) => Promise<AuthResponse>;
   signup: (payload: SignupPayload) => Promise<AuthResponse>;
   hydrate: () => Promise<void>;
@@ -88,8 +89,9 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       otpRequired: false,
       otpVerified: false,
+      skipAutoResendOtp: false,  // ✅ NEW: Skip auto-resend after signup
       login: async (payload) => {
-        set({ isLoading: true, error: undefined });
+        set({ isLoading: true, error: undefined, skipAutoResendOtp: false });
         try {
           const response = await login(payload);
           const token = response.token ?? response.accessToken;
@@ -118,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       signup: async (payload) => {
-        set({ isLoading: true, error: undefined });
+        set({ isLoading: true, error: undefined, skipAutoResendOtp: true });  // ✅ Set flag
         try {
           const response = await signup(payload);
           const token = response.token ?? response.accessToken;
@@ -129,11 +131,12 @@ export const useAuthStore = create<AuthState>()(
               status: "authenticated",
               isLoading: false,
               pendingOtpEmail: response.user?.email,
+              skipAutoResendOtp: true,  // ✅ Keep flag set
             });
           else set({ isLoading: false });
           return response;
         } catch (error) {
-          set({ isLoading: false, error: getApiErrorMessage(error) });
+          set({ isLoading: false, error: getApiErrorMessage(error), skipAutoResendOtp: false });
           throw error;
         }
       },
@@ -167,7 +170,11 @@ export const useAuthStore = create<AuthState>()(
         return user;
       },
       generateOtp: async (payload) => generateOtp(payload, get().token),
-      verifyOtp: async (payload) => verifyOtp(payload, get().token),
+      verifyOtp: async (payload) => {
+        const result = await verifyOtp(payload, get().token);
+        set({ skipAutoResendOtp: false });  // ✅ Clear flag after verification
+        return result;
+      },
       checkUsernameAvailability: checkUsername,
       verifyGroupCode,
       clearError: () => set({ error: undefined }),
@@ -180,6 +187,7 @@ export const useAuthStore = create<AuthState>()(
           status: "unauthenticated",
           otpRequired: false,
           otpVerified: false,
+          skipAutoResendOtp: false,  // ✅ Reset flag
           error: undefined,
         }),
       logout: () => get().clearAuth(),

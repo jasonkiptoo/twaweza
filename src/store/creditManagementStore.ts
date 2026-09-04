@@ -1,6 +1,7 @@
 import {
     createCreditApplication,
     createCreditProduct,
+    updateCreditProduct,
     decideCreditApplication,
     getCreditLoan,
     getCreditSchedule,
@@ -76,6 +77,11 @@ interface CreditState {
   createProduct: (
     token: string,
     payload: Omit<CreditProduct, "id">,
+  ) => Promise<void>;
+  updateProduct: (
+    token: string,
+    productId: string,
+    payload: Partial<CreditProduct>,
   ) => Promise<void>;
   submitApplication: (
     token: string,
@@ -196,6 +202,14 @@ export const useCreditManagementStore = create<CreditState>((set, get) => ({
       set({ creatingProduct: false });
     }
   },
+  updateProduct: async (token, productId, payload) => {
+    set({ creatingProduct: true });
+    try {
+      await updateCreditProduct(token, productId, payload);
+    } finally {
+      set({ creatingProduct: false });
+    }
+  },
   submitApplication: async (token, payload) => {
     set({ submittingApplication: true });
     try {
@@ -205,11 +219,12 @@ export const useCreditManagementStore = create<CreditState>((set, get) => ({
     }
   },
   decideApplication: async (token, id, decision, note) => {
-    set({ decidingApplication: true });
+    set({ decidingApplication: true, applicationsError: undefined });
     try {
       await decideCreditApplication(token, id, { decision, note });
+      // 🔧 OPTIMIZATION: Only refresh applications list, not loans
+      // Approved applications become loans server-side, frontend polls separately if needed
       await get().fetchApplications(token, { page: 1 });
-      await get().fetchLoans(token, { page: 1 });
     } catch (error) {
       set({ decidingApplication: false });
       throw error;
@@ -245,11 +260,12 @@ export const useCreditManagementStore = create<CreditState>((set, get) => ({
     }
   },
   recordPayment: async (token, loanId, payload) => {
-    set({ paymentLoading: true });
+    set({ paymentLoading: true, loanDetailsError: undefined });
     try {
       await recordCreditPayment(token, loanId, payload);
+      // 🔧 OPTIMIZATION: Only refetch the specific loan details
+      // No need to reload entire loans list for a single payment
       await get().fetchLoanDetails(token, loanId);
-      await get().fetchLoans(token, { page: 1 });
     } finally {
       set({ paymentLoading: false });
     }

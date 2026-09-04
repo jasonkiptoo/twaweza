@@ -12,16 +12,16 @@ import { Link, router } from "expo-router";
 import { Eye, EyeOff, PiggyBank } from "lucide-react-native";
 import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
 } from "react-native";
 
 const developmentCredentials = {
-  email: "allankorir66@gmail.com",
-  password: "1234Love&",
+  email: "andrewtate@gmail.com",
+  password: "123456",
 };
 
 export default function LoginScreen() {

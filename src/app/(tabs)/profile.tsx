@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
-import { LogOut, Moon, Sun, UserRound } from "lucide-react-native";
+import { LogOut, Moon, Sun, UserRound, Settings } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
@@ -13,6 +13,7 @@ import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
+import { hasRole } from "@/types/auth";
 
 export default function ProfileScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
@@ -77,6 +78,13 @@ export default function ProfileScreen() {
           title={isDark ? "Use light theme" : "Use dark theme"}
           onPress={toggleTheme}
         />
+        {hasRole(user, "admin") && (
+          <AppButton
+            title="Group Administration"
+            variant="outline"
+            onPress={() => router.push("/admin")}
+          />
+        )}
         <AppButton
           title={loggingOut ? "Signing out..." : "Sign out"}
           variant="destructive"

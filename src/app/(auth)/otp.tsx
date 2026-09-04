@@ -20,6 +20,7 @@ export default function OtpScreen() {
   const { colors } = useTheme();
   const pendingEmail = useAuthStore((state) => state.pendingOtpEmail);
   const userEmail = useAuthStore((state) => state.user?.email);
+  const skipAutoResend = useAuthStore((state) => state.skipAutoResendOtp);  // ✅ NEW: Check flag
   const email = pendingEmail ?? userEmail ?? "";
   const verify = useAuthStore((state) => state.verifyOtp);
   const resend = useAuthStore((state) => state.generateOtp);
@@ -41,7 +42,7 @@ export default function OtpScreen() {
   }, [secondsLeft]);
 
   useEffect(() => {
-    if (!email) return;
+    if (!email || skipAutoResend) return;  // ✅ Skip if flag is true
     let active = true;
     setSendingInitialCode(true);
     void resend({ email })
@@ -50,7 +51,7 @@ export default function OtpScreen() {
     return () => {
       active = false;
     };
-  }, [email, resend]);
+  }, [email, resend, skipAutoResend]);
 
   function updateDigit(index: number, value: string) {
     const clean = value.replace(/\D/g, "");

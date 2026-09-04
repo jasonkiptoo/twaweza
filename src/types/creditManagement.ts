@@ -1,23 +1,16 @@
-import type { Pagination } from "./api";
-
 export type PaymentMethod = "Cash" | "Bank" | "Manual" | "Mpesa" | "Wallet";
 export type LoanDecision = "approve" | "reject";
 export type InterestType = "fixed" | "reducing_balance";
 export type RepaymentFrequency = "weekly" | "biweekly" | "monthly";
 export type ApprovalMode = "single" | "multi_level";
 export type PaymentAllocationComponent =
-  | "Penalty"
-  | "Interest"
-  | "Fee"
-  | "Principal";
+  "Penalty" | "Interest" | "Fee" | "Principal";
 
 export interface CreditProduct {
   id: string;
   _id?: string;
   name: string;
   description?: string;
-  group?: string;
-  active?: boolean;
   minAmount?: number;
   maxAmount?: number;
   currency?: string;
@@ -25,13 +18,27 @@ export interface CreditProduct {
   interestRate?: number;
   repaymentFrequency?: string;
   repaymentDurationMonths?: number;
+  active?: boolean;
+  // ✅ Admin-only fields (now available when editing)
   gracePeriodDays?: number;
   processingFee?: number;
   insuranceFee?: number;
-  approvalMode?: string;
+  approvalMode?: ApprovalMode;
   maxActiveLoans?: number;
   paymentAllocationOrder?: PaymentAllocationComponent[];
-  eligibilitySettings?: Record<string, unknown>;
+  penaltyRules?: {
+    type?: string;
+    value?: number;
+    graceDays?: number;
+  };
+  eligibilitySettings?: {
+    minimumMembershipDurationDays?: number;
+    requireActiveMember?: boolean;
+    maxActiveLoans?: number;
+    allowBorrowingWhileAnotherProductExists?: boolean;
+    minimumAgeInGroup?: number;
+    requirePreviousLoanCleared?: boolean;
+  };
 }
 
 export interface CreditLoanApplication {
@@ -41,13 +48,13 @@ export interface CreditLoanApplication {
   member?: string | CreditMember;
   product?: CreditProduct | string;
   productSnapshot?: CreditProduct;
-  eligibilitySnapshot?: { eligible?: boolean; reasons?: string[] };
   requestedAmount?: number;
   repaymentDurationMonths?: number;
   repaymentFrequency?: string;
   purpose?: string;
   comments?: string;
   status?: string;
+  // Note: eligibilitySnapshot and applicationDetails excluded from list responses
 }
 
 export interface CreditGroup {
@@ -69,25 +76,20 @@ export interface CreditMember {
 export interface CreditLoan {
   id: string;
   _id?: string;
-  application?: string | CreditLoanApplication;
-  member?: string | CreditMember;
-  product?: string | CreditProduct;
   productSnapshot?: CreditProduct;
-  applicationDetails?: CreditLoanApplication;
   principal?: number;
   interest?: number;
   principalAmount?: number;
   interestAmount?: number;
   fees?: number;
-  totalAmount?: number;
   balance?: number;
   totalPaid?: number;
   amountRemaining?: number;
   status?: string;
   nextPaymentDate?: string;
   overdueDays?: number;
-  approvedBy?: string;
-  disbursedAt?: string;
+  // Note: application, member, product (fallback), totalAmount, approvedBy, disbursedAt,
+  // applicationDetails excluded from list responses
 }
 
 export interface CreditLoanSchedule {
@@ -120,5 +122,8 @@ export interface CreditReconciliation {
 
 export interface PaginatedCredit<T> {
   results: T[];
-  pagination: Pagination;
+  totalPages: number;
+  totalElements: number;
+  page: number;
+  pageSize: number;
 }
