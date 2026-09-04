@@ -46,7 +46,9 @@ export default function ApplyScreen() {
   const [eligibilityReasons, setEligibilityReasons] = useState<string[]>([]);
   const product = products.find((item) => item.id === productId);
   const repaymentUnit =
-    product?.repaymentFrequency?.toLowerCase() === "weekly" ? "weeks" : "months";
+    product?.repaymentFrequency?.toLowerCase() === "weekly"
+      ? "weeks"
+      : "months";
   const maximumTerm = product?.repaymentDurationMonths ?? 0;
 
   useEffect(() => {
@@ -74,7 +76,9 @@ export default function ApplyScreen() {
       repaymentDurationMonths < 1 ||
       repaymentDurationMonths > maximumTerm
     )
-      return setError(`Choose a repayment term from 1 to ${maximumTerm} ${repaymentUnit}.`);
+      return setError(
+        `Choose a repayment term from 1 to ${maximumTerm} ${repaymentUnit}.`,
+      );
     if (!token) return setError("Your session has expired.");
     let resolvedGroupId = groupId;
     if (!resolvedGroupId) {
@@ -119,7 +123,10 @@ export default function ApplyScreen() {
 
   return (
     <Screen>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingBottom: 32 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ gap: 20, paddingBottom: 32 }}
+      >
         <VStack className="gap-2">
           <Heading size="3xl">Apply for a loan</Heading>
           <Text className="text-muted-foreground">
@@ -145,7 +152,10 @@ export default function ApplyScreen() {
               placeholder="KES amount"
             />
           </FormField>
-          <FormField label={`Repayment term in ${repaymentUnit} (maximum ${maximumTerm})`} required>
+          <FormField
+            label={`Repayment term in ${repaymentUnit} (maximum ${maximumTerm})`}
+            required
+          >
             <AppInput
               value={term}
               onChangeText={(value) => {
@@ -185,17 +195,20 @@ export default function ApplyScreen() {
             <VStack className="gap-2">
               <Text className="font-semibold">Product details</Text>
               <Text className="text-sm">
-                Amount: {product.currency || "KES"} {product.minAmount} - {product.maxAmount}
+                Amount: {product.currency || "KES"} {product.minAmount} -{" "}
+                {product.maxAmount}
               </Text>
               <Text className="text-sm">
                 Interest: {product.interestRate}% ({product.interestType})
               </Text>
               <Text className="text-sm">
-                Repayment: {product.repaymentFrequency} for {product.repaymentDurationMonths} months
+                Repayment: {product.repaymentFrequency} for{" "}
+                {product.repaymentDurationMonths} months
               </Text>
               {product.maxActiveLoans && (
                 <Text className="text-sm text-yellow-600">
-                  📋 Note: Max {product.maxActiveLoans} active loan(s) per member
+                  📋 Note: Max {product.maxActiveLoans} active loan(s) per
+                  member
                 </Text>
               )}
             </VStack>
@@ -222,12 +235,17 @@ export default function ApplyScreen() {
               </Text>
             </View>
             {eligibilityReasons.map((reason, idx) => (
-              <Text key={idx} className="text-sm" style={{ color: colors.error }}>
+              <Text
+                key={idx}
+                className="text-sm"
+                style={{ color: colors.error }}
+              >
                 • {reason}
               </Text>
             ))}
             <Text className="text-xs text-muted-foreground mt-2">
-              Please contact your group admin if you have questions about these requirements.
+              Please contact your group admin if you have questions about these
+              requirements.
             </Text>
           </VStack>
         )}

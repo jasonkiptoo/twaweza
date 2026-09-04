@@ -1,27 +1,27 @@
+import {
+    checkUsername,
+    generateOtp,
+    getCurrentUser,
+    login,
+    signup,
+    verifyGroupCode,
+    verifyOtp,
+    type UsernameAvailabilityResponse,
+} from "@/services/authApi";
+import type {
+    AuthResponse,
+    AuthStatus,
+    Group,
+    LoginPayload,
+    OtpGeneratePayload,
+    OtpVerifyPayload,
+    SignupPayload,
+    User,
+} from "@/types/auth";
+import { getApiErrorMessage } from "@/utils/apiError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type {
-  AuthResponse,
-  AuthStatus,
-  Group,
-  LoginPayload,
-  OtpGeneratePayload,
-  OtpVerifyPayload,
-  SignupPayload,
-  User,
-} from "@/types/auth";
-import {
-  checkUsername,
-  generateOtp,
-  getCurrentUser,
-  login,
-  signup,
-  verifyGroupCode,
-  verifyOtp,
-  type UsernameAvailabilityResponse,
-} from "@/services/authApi";
-import { getApiErrorMessage } from "@/utils/apiError";
 
 const memoryStorage = new Map<string, string>();
 const safeStorage = {
@@ -61,7 +61,7 @@ interface AuthState {
   error?: string;
   otpRequired: boolean;
   otpVerified: boolean;
-  skipAutoResendOtp: boolean;  // ✅ NEW: Skip auto-resend after signup
+  skipAutoResendOtp: boolean; // ✅ NEW: Skip auto-resend after signup
   login: (payload: LoginPayload) => Promise<AuthResponse>;
   signup: (payload: SignupPayload) => Promise<AuthResponse>;
   hydrate: () => Promise<void>;
@@ -89,7 +89,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       otpRequired: false,
       otpVerified: false,
-      skipAutoResendOtp: false,  // ✅ NEW: Skip auto-resend after signup
+      skipAutoResendOtp: false, // ✅ NEW: Skip auto-resend after signup
       login: async (payload) => {
         set({ isLoading: true, error: undefined, skipAutoResendOtp: false });
         try {
@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       signup: async (payload) => {
-        set({ isLoading: true, error: undefined, skipAutoResendOtp: true });  // ✅ Set flag
+        set({ isLoading: true, error: undefined, skipAutoResendOtp: true }); // ✅ Set flag
         try {
           const response = await signup(payload);
           const token = response.token ?? response.accessToken;
@@ -131,12 +131,16 @@ export const useAuthStore = create<AuthState>()(
               status: "authenticated",
               isLoading: false,
               pendingOtpEmail: response.user?.email,
-              skipAutoResendOtp: true,  // ✅ Keep flag set
+              skipAutoResendOtp: true, // ✅ Keep flag set
             });
           else set({ isLoading: false });
           return response;
         } catch (error) {
-          set({ isLoading: false, error: getApiErrorMessage(error), skipAutoResendOtp: false });
+          set({
+            isLoading: false,
+            error: getApiErrorMessage(error),
+            skipAutoResendOtp: false,
+          });
           throw error;
         }
       },
@@ -172,7 +176,7 @@ export const useAuthStore = create<AuthState>()(
       generateOtp: async (payload) => generateOtp(payload, get().token),
       verifyOtp: async (payload) => {
         const result = await verifyOtp(payload, get().token);
-        set({ skipAutoResendOtp: false });  // ✅ Clear flag after verification
+        set({ skipAutoResendOtp: false }); // ✅ Clear flag after verification
         return result;
       },
       checkUsernameAvailability: checkUsername,
@@ -187,7 +191,7 @@ export const useAuthStore = create<AuthState>()(
           status: "unauthenticated",
           otpRequired: false,
           otpVerified: false,
-          skipAutoResendOtp: false,  // ✅ Reset flag
+          skipAutoResendOtp: false, // ✅ Reset flag
           error: undefined,
         }),
       logout: () => get().clearAuth(),

@@ -156,6 +156,13 @@ export default function LoginScreen() {
                       </InputSlot>
                     </Input>
                   </VStack>
+                  <Link href="/(auth)/forgot-password" asChild>
+                    <Pressable>
+                      <Text className="text-sm text-primary text-right">
+                        Forgot password?
+                      </Text>
+                    </Pressable>
+                  </Link>
                 </VStack>
                 {(validationError || error) && (
                   <Text style={{ color: colors.error }}>

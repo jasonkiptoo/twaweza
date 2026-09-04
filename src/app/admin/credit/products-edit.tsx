@@ -13,8 +13,8 @@ import { useCreditManagementStore } from "@/store/creditManagementStore";
 import { useGroupStore } from "@/store/groupStore";
 import type { CreditProduct } from "@/types/creditManagement";
 import { getApiErrorMessage } from "@/utils/apiError";
-import { Plus, X } from "lucide-react-native";
 import { useLocalSearchParams } from "expo-router";
+import { Plus } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -64,14 +64,20 @@ export default function AdminProductsEditScreen() {
   const error = useCreditManagementStore((state) => state.productsError);
   const creating = useCreditManagementStore((state) => state.creatingProduct);
   const fetch = useCreditManagementStore((state) => state.fetchProducts);
-  const createProduct = useCreditManagementStore((state) => state.createProduct);
-  const updateProduct = useCreditManagementStore((state) => state.updateProduct);
+  const createProduct = useCreditManagementStore(
+    (state) => state.createProduct,
+  );
+  const updateProduct = useCreditManagementStore(
+    (state) => state.updateProduct,
+  );
   const group = useGroupStore((state) => state.group);
   const fetchGroup = useGroupStore((state) => state.fetchGroup);
   const { productId } = useLocalSearchParams<{ productId?: string }>();
 
   const [showForm, setShowForm] = useState(!!productId);
-  const [editingProduct, setEditingProduct] = useState<CreditProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<CreditProduct | null>(
+    null,
+  );
   const [form, setForm] = useState<ProductForm>({
     name: "",
     description: "",
@@ -135,16 +141,16 @@ export default function AdminProductsEditScreen() {
       approvalMode: product.approvalMode || "single",
       maxActiveLoans: String(product.maxActiveLoans || "1"),
       requireActiveMember: String(
-        product.eligibilitySettings?.requireActiveMember ?? "true"
+        product.eligibilitySettings?.requireActiveMember ?? "true",
       ),
       minimumMembershipDurationDays: String(
-        product.eligibilitySettings?.minimumMembershipDurationDays || "0"
+        product.eligibilitySettings?.minimumMembershipDurationDays || "0",
       ),
       requirePreviousLoanCleared: String(
-        product.eligibilitySettings?.requirePreviousLoanCleared ?? "false"
+        product.eligibilitySettings?.requirePreviousLoanCleared ?? "false",
       ),
       minimumAgeInGroup: String(
-        product.eligibilitySettings?.minimumAgeInGroup || "0"
+        product.eligibilitySettings?.minimumAgeInGroup || "0",
       ),
     });
     setShowForm(true);
@@ -166,9 +172,12 @@ export default function AdminProductsEditScreen() {
     if (!form.name.trim()) errors.name = "Product name is required";
     if (minAmount < 0) errors.minAmount = "Minimum amount must be positive";
     if (maxAmount <= 0) errors.maxAmount = "Maximum amount must be positive";
-    if (maxAmount < minAmount) errors.maxAmount = "Must be greater than minimum";
-    if (interestRate < 0) errors.interestRate = "Interest rate must be positive";
-    if (duration < 1) errors.repaymentDurationMonths = "Duration must be at least 1";
+    if (maxAmount < minAmount)
+      errors.maxAmount = "Must be greater than minimum";
+    if (interestRate < 0)
+      errors.interestRate = "Interest rate must be positive";
+    if (duration < 1)
+      errors.repaymentDurationMonths = "Duration must be at least 1";
 
     if (Object.keys(errors).length) {
       return setFieldErrors(errors);
@@ -211,8 +220,7 @@ export default function AdminProductsEditScreen() {
         requireActiveMember: form.requireActiveMember === "true",
         minimumMembershipDurationDays:
           Number(form.minimumMembershipDurationDays) || 0,
-        requirePreviousLoanCleared:
-          form.requirePreviousLoanCleared === "true",
+        requirePreviousLoanCleared: form.requirePreviousLoanCleared === "true",
         minimumAgeInGroup: Number(form.minimumAgeInGroup) || 0,
         maxActiveLoans: Number(form.maxActiveLoans) || 1,
       },
@@ -276,7 +284,11 @@ export default function AdminProductsEditScreen() {
                 { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6 },
                 form[field] === opt.value
                   ? { backgroundColor: colors.primary }
-                  : { backgroundColor: colors.muted, borderWidth: 1, borderColor: colors.border },
+                  : {
+                      backgroundColor: colors.muted,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    },
               ]}
             >
               <Text
@@ -313,7 +325,9 @@ export default function AdminProductsEditScreen() {
 
           {feedback && (
             <Text
-              className={feedback.startsWith("✅") ? "text-success" : "text-error"}
+              className={
+                feedback.startsWith("✅") ? "text-success" : "text-error"
+              }
             >
               {feedback}
             </Text>
@@ -344,7 +358,11 @@ export default function AdminProductsEditScreen() {
               </FormField>
 
               {/* Loan Amounts */}
-              <FormField label="Minimum amount (KES)" error={fieldErrors.minAmount} required>
+              <FormField
+                label="Minimum amount (KES)"
+                error={fieldErrors.minAmount}
+                required
+              >
                 <AppInput
                   value={form.minAmount}
                   onChangeText={(v) => update("minAmount", v)}
@@ -353,7 +371,11 @@ export default function AdminProductsEditScreen() {
                 />
               </FormField>
 
-              <FormField label="Maximum amount (KES)" error={fieldErrors.maxAmount} required>
+              <FormField
+                label="Maximum amount (KES)"
+                error={fieldErrors.maxAmount}
+                required
+              >
                 <AppInput
                   value={form.maxAmount}
                   onChangeText={(v) => update("maxAmount", v)}
@@ -363,7 +385,11 @@ export default function AdminProductsEditScreen() {
               </FormField>
 
               {/* Interest & Repayment */}
-              <FormField label="Interest rate (%)" error={fieldErrors.interestRate} required>
+              <FormField
+                label="Interest rate (%)"
+                error={fieldErrors.interestRate}
+                required
+              >
                 <AppInput
                   value={form.interestRate}
                   onChangeText={(v) => update("interestRate", v)}
@@ -373,9 +399,17 @@ export default function AdminProductsEditScreen() {
               </FormField>
 
               {renderSelect("interestType", "Interest type", interestTypes)}
-              {renderSelect("repaymentFrequency", "Repayment frequency", repaymentFrequencies)}
+              {renderSelect(
+                "repaymentFrequency",
+                "Repayment frequency",
+                repaymentFrequencies,
+              )}
 
-              <FormField label="Repayment duration (months)" error={fieldErrors.repaymentDurationMonths} required>
+              <FormField
+                label="Repayment duration (months)"
+                error={fieldErrors.repaymentDurationMonths}
+                required
+              >
                 <AppInput
                   value={form.repaymentDurationMonths}
                   onChangeText={(v) => update("repaymentDurationMonths", v)}
@@ -413,7 +447,9 @@ export default function AdminProductsEditScreen() {
               </FormField>
 
               {/* Admin Settings */}
-              <Text className="font-semibold text-base mt-4">Admin settings</Text>
+              <Text className="font-semibold text-base mt-4">
+                Admin settings
+              </Text>
 
               {renderSelect("approvalMode", "Approval mode", approvalModes)}
 
@@ -427,7 +463,9 @@ export default function AdminProductsEditScreen() {
               </FormField>
 
               {/* Eligibility Settings */}
-              <Text className="font-semibold text-base mt-4">Eligibility rules</Text>
+              <Text className="font-semibold text-base mt-4">
+                Eligibility rules
+              </Text>
 
               <FormField label="✅ Require active member status">
                 <VStack className="gap-2">
@@ -471,7 +509,9 @@ export default function AdminProductsEditScreen() {
               <FormField label="✅ Minimum membership duration (days)">
                 <AppInput
                   value={form.minimumMembershipDurationDays}
-                  onChangeText={(v) => update("minimumMembershipDurationDays", v)}
+                  onChangeText={(v) =>
+                    update("minimumMembershipDurationDays", v)
+                  }
                   keyboardType="number-pad"
                   placeholder="e.g., 30"
                 />
@@ -509,7 +549,9 @@ export default function AdminProductsEditScreen() {
                               : colors.foreground,
                         }}
                       >
-                        {val === "true" ? "Yes - Required" : "No - Not required"}
+                        {val === "true"
+                          ? "Yes - Required"
+                          : "No - Not required"}
                       </Text>
                     </Pressable>
                   ))}
@@ -581,7 +623,8 @@ export default function AdminProductsEditScreen() {
                 </Text>
                 <View className="flex-row justify-between">
                   <Text className="text-sm">
-                    {product.currency || "KES"} {product.minAmount} - {product.maxAmount}
+                    {product.currency || "KES"} {product.minAmount} -{" "}
+                    {product.maxAmount}
                   </Text>
                   <Text className="text-sm">
                     {product.interestRate}% {product.interestType}

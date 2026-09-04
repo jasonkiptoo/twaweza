@@ -54,8 +54,12 @@ function pageResult<T>(data: unknown, key: string): PaginatedCredit<T> {
 function normalizeCreditLoan(loan: CreditLoan) {
   return normalizeEntityId({
     ...loan,
-    principalAmount: loan.principalAmount ?? (loan as CreditLoan & { principal?: number }).principal,
-    interestAmount: loan.interestAmount ?? (loan as CreditLoan & { interest?: number }).interest,
+    principalAmount:
+      loan.principalAmount ??
+      (loan as CreditLoan & { principal?: number }).principal,
+    interestAmount:
+      loan.interestAmount ??
+      (loan as CreditLoan & { interest?: number }).interest,
   });
 }
 
@@ -85,9 +89,13 @@ export async function updateCreditProduct(
   productId: string,
   payload: Partial<CreditProduct>,
 ) {
-  const { data } = await api.put(`/credit-management/products/${productId}`, payload, {
-    headers: authHeaders(token),
-  });
+  const { data } = await api.put(
+    `/credit-management/products/${productId}`,
+    payload,
+    {
+      headers: authHeaders(token),
+    },
+  );
   return normalizeEntityId(data);
 }
 

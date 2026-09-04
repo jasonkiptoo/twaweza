@@ -1,7 +1,6 @@
 import {
     createCreditApplication,
     createCreditProduct,
-    updateCreditProduct,
     decideCreditApplication,
     getCreditLoan,
     getCreditSchedule,
@@ -10,6 +9,7 @@ import {
     listCreditLoans,
     listCreditProducts,
     recordCreditPayment,
+    updateCreditProduct,
 } from "@/services/creditManagementApi";
 import type { Pagination } from "@/types/api";
 import type {

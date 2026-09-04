@@ -95,3 +95,26 @@ export async function checkUsername(
   );
   return data;
 }
+
+export async function forgotPasswordRequest(
+  email: string,
+): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>(
+    "/auth/forgot-password",
+    { email: email.trim().toLowerCase() },
+  );
+  return data;
+}
+
+export async function resetPasswordRequest(
+  token: string,
+  password: string,
+  confirmPassword: string,
+): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>("/auth/reset-password", {
+    token: token.trim(),
+    password,
+    confirmPassword,
+  });
+  return data;
+}

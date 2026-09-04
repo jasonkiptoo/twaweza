@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-import { router } from "expo-router";
-import { LogOut, Moon, Sun, UserRound, Settings } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
@@ -8,12 +5,15 @@ import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
 import { IconButton } from "@/components/ui/IconButton";
 import { Text } from "@/components/ui/text";
-import { View } from "react-native";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
 import { hasRole } from "@/types/auth";
+import { router } from "expo-router";
+import { Moon, Sun, UserRound } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { View } from "react-native";
 
 export default function ProfileScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
