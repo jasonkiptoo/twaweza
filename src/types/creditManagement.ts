@@ -127,3 +127,163 @@ export interface PaginatedCredit<T> {
   page: number;
   pageSize: number;
 }
+
+// ======== CONTRIBUTION TYPES (NEW API CONTRACT) ========
+
+export type ContributionMethod = "Mpesa" | "Bank" | "cash";
+export type ContributionStatus = "pending" | "confirmed" | "failed" | "rejected";
+export type ContributionFrequency = "none" | "weekly" | "monthly";
+
+export interface Contribution {
+  id: string;
+  amount: number;
+  currency: string;
+  method: ContributionMethod;
+  reference?: string;
+  status: ContributionStatus;
+  contributedAt: string;
+  confirmedAt?: string;
+}
+
+export interface GroupContribution extends Contribution {
+  member: {
+    id: string;
+    name: string;
+    phone?: string;
+    memberNumber?: string;
+  };
+}
+
+export interface ContributionSettings {
+  enabled: boolean;
+  required: boolean;
+  minimumAmount: number;
+  minimumFrequency: ContributionFrequency;
+  minimumPeriods: number;
+  minimumConfirmedAmount: number;
+  eligibilityPercentage: number;
+  loanMultiplier: number;
+  allowPendingForEligibility: boolean;
+  approvalRequired: boolean;
+  allowedMethods: ContributionMethod[];
+  currency: string;
+}
+
+export interface CreateContributionRequest {
+  amount: number;
+  method: ContributionMethod;
+  reference?: string;
+  idempotencyKey?: string;
+}
+
+export interface ContributionListResponse<T extends Contribution> {
+  results: T[];
+  pagination: PaginatedCredit<T>["totalPages"] extends number
+    ? {
+        page: number;
+        pageSize: number;
+        total: number;
+        totalPages: number;
+      }
+    : never;
+}
+
+// ======== DASHBOARD TYPES ========
+
+export interface GroupFinancialSummary {
+  group: {
+    id: string;
+    name: string;
+    currency: string;
+  };
+  contributions: {
+    confirmedTotal: number;
+    pendingTotal: number;
+    memberCount: number;
+  };
+  loans: {
+    totalDisbursed: number;
+    outstandingPrincipal: number;
+    repaidPrincipal: number;
+    activeLoans: number;
+    pendingApplications: number;
+  };
+  financialPosition: {
+    totalContributions: number;
+    outstandingLoanPrincipal: number;
+    availableGroupFunds: number;
+  };
+  contributionPolicy: Pick<
+    ContributionSettings,
+    | "enabled"
+    | "required"
+    | "minimumAmount"
+    | "minimumFrequency"
+    | "minimumPeriods"
+    | "currency"
+  >;
+  updatedAt: string;
+}
+
+export interface ContributionProgressSnapshot {
+  required: boolean;
+  confirmedTotal: number;
+  qualifyingPeriods: number;
+  maximumEligibleAmount: number;
+  evaluatedAt: string;
+}
+
+export interface LoanEligibilityResponse {
+  eligible: boolean;
+  reasons?: string[];
+  application?: {
+    _id: string;
+    status: string;
+    requestedAmount: number;
+    contributionEligibilitySnapshot: ContributionProgressSnapshot;
+  };
+}
+
+export interface DashboardSummary {
+  user: {
+    id: string;
+    name: string;
+    timezone?: string;
+  };
+  group: {
+    id: string;
+    name: string;
+    currency: string;
+  };
+  financialPosition: {
+    availableGroupFunds: number;
+    totalContributions: number;
+    outstandingLoanPrincipal: number;
+  };
+  myContribution: {
+    confirmedTotal: number;
+    pendingTotal: number;
+    thisMonth?: number;
+    thisWeek?: number;
+  };
+  myLoans: {
+    active: number;
+    totalActive: number;
+    nextRepaymentAmount?: number;
+    nextRepaymentDate?: string;
+  };
+  contributions: {
+    frequency: ContributionFrequency;
+    amount: number;
+    progress?: number; // percentage
+    periods: {
+      required: number;
+      completed: number;
+    };
+  };
+  admin?: {
+    pendingContributions: number;
+    pendingApplications: number;
+  };
+  updatedAt: string;
+}

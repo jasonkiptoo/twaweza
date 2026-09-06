@@ -5,7 +5,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useRouter } from "expo-router";
-import { FileCheck, Landmark, PackagePlus } from "lucide-react-native";
+import { Coins, FileCheck, Landmark, PackagePlus, UsersRound } from "lucide-react-native";
 import { Pressable } from "react-native";
 
 export default function AdminHomeScreen() {
@@ -17,9 +17,22 @@ export default function AdminHomeScreen() {
         <VStack className="gap-1">
           <Heading size="3xl">Admin workspace</Heading>
           <Text className="text-muted-foreground">
-            Manage credit products, applications, and the loan portfolio.
+            Manage group finance and approvals from one workspace.
           </Text>
         </VStack>
+        <Heading size="lg">Contributions</Heading>
+        <Pressable onPress={() => router.push("/admin/contribution-approvals")}>
+          <AppCard>
+            <VStack className="gap-2">
+              <Coins size={24} color={colors.primary} />
+              <Heading size="lg">Contributions</Heading>
+              <Text className="text-muted-foreground">
+                Review contribution approvals and monitor member payments.
+              </Text>
+            </VStack>
+          </AppCard>
+        </Pressable>
+        <Heading size="lg">Loans & credit</Heading>
         <Pressable onPress={() => router.push("/admin/credit/products")}>
           <AppCard>
             <VStack className="gap-2">
@@ -31,6 +44,7 @@ export default function AdminHomeScreen() {
             </VStack>
           </AppCard>
         </Pressable>
+        <Heading size="lg">Group operations</Heading>
         <Pressable onPress={() => router.push("/admin/credit/applications")}>
           <AppCard>
             <VStack className="gap-2">
@@ -49,6 +63,17 @@ export default function AdminHomeScreen() {
               <Heading size="lg">Loan portfolio</Heading>
               <Text className="text-muted-foreground">
                 Monitor issued loans, balances, payments, and statuses.
+              </Text>
+            </VStack>
+          </AppCard>
+        </Pressable>
+        <Pressable onPress={() => router.push("/admin/users")}>
+          <AppCard>
+            <VStack className="gap-2">
+              <UsersRound size={24} color={colors.primary} />
+              <Heading size="lg">Members</Heading>
+              <Text className="text-muted-foreground">
+                Review members and their group access.
               </Text>
             </VStack>
           </AppCard>

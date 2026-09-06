@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
-import { Landmark, Users } from "lucide-react-native";
+import { Landmark, Settings, Users } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
@@ -15,6 +15,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useGroupStore } from "@/store/groupStore";
 import { useContributionStore } from "@/store/contributionStore";
+import { isAdmin } from "@/types/auth";
+import { useRouter } from "expo-router";
 
 const sections = ["Overview", "Contributions", "Members", "Bank Info"] as const;
 type GroupSection = (typeof sections)[number];
@@ -22,6 +24,8 @@ type GroupSection = (typeof sections)[number];
 export default function GroupScreen() {
   const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
+  const router = useRouter();
   const group = useGroupStore((state) => state.group);
   const groupLoading = useGroupStore((state) => state.isLoading);
   const groupError = useGroupStore((state) => state.error);
@@ -234,6 +238,20 @@ export default function GroupScreen() {
               />
             )}
           </VStack>
+        )}
+        {isAdmin(user) && (
+          <AppCard>
+            <View className="flex-row items-center gap-3">
+              <Settings color={colors.primary} size={22} />
+              <VStack className="flex-1 gap-1">
+                <Heading size="lg">Admin settings</Heading>
+                <Text className="text-muted-foreground">
+                  Manage contributions, loan products, approvals, and members.
+                </Text>
+              </VStack>
+              <AppButton title="Open" onPress={() => router.push("/admin")} />
+            </View>
+          </AppCard>
         )}
       </ScrollView>
     </Screen>
