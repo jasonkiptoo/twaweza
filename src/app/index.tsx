@@ -1,20 +1,20 @@
-import * as SplashScreen from "expo-splash-screen";
-import { router } from "expo-router";
-import { PiggyBank } from "lucide-react-native";
-import { useEffect, useRef } from "react";
-import { Animated, Easing, StyleSheet } from "react-native";
 import { Screen } from "@/components/layout/Screen";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
+import { router } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { PiggyBank } from "lucide-react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, StyleSheet, View } from "react-native";
 
 SplashScreen.preventAutoHideAsync();
 const SPLASH_DURATION = 1800;
 const SPLASH_FAILSAFE = 10000;
 
 export default function SplashRoute() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const initialized = useAuthStore((state) => state.initialized);
   const status = useAuthStore((state) => state.status);
   const otpRequired = useAuthStore((state) => state.otpRequired);
@@ -57,12 +57,34 @@ export default function SplashRoute() {
   return (
     <Screen>
       <VStack
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.background,
+            borderColor: isDark ? "transparent" : colors.border,
+          },
+        ]}
       >
         <Animated.View style={{ opacity, transform: [{ scale }] }}>
-          <VStack className="items-center gap-4">
+          <VStack
+            style={[
+              styles.brandCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                shadowColor: colors.textPrimary,
+              },
+            ]}
+            className="items-center gap-4"
+          >
             <VStack
-              style={[styles.logo, { backgroundColor: colors.primary }]}
+              style={[
+                styles.logo,
+                {
+                  backgroundColor: colors.primary,
+                  shadowColor: colors.primary,
+                },
+              ]}
               className="items-center justify-center"
             >
               <PiggyBank color={colors.onPrimary} size={42} strokeWidth={1.8} />
@@ -77,7 +99,11 @@ export default function SplashRoute() {
             </VStack>
           </VStack>
         </Animated.View>
-        <Text style={{ color: colors.muted }}>Powered by Financial Guru</Text>
+        <View style={styles.footer}>
+          <Text style={{ color: colors.muted, textAlign: "center" }}>
+            Powered by Financial Guru
+          </Text>
+        </View>
       </VStack>
     </Screen>
   );
@@ -89,7 +115,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     margin: -24,
+    borderWidth: 1,
+    paddingHorizontal: 24,
   },
-  logo: { width: 92, height: 92, borderRadius: 28 },
+  brandCard: {
+    alignItems: "center",
+    borderRadius: 28,
+    borderWidth: 1,
+    paddingHorizontal: 34,
+    paddingVertical: 34,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  logo: {
+    width: 92,
+    height: 92,
+    borderRadius: 28,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    elevation: 6,
+  },
   title: { fontSize: 32, lineHeight: 40, fontWeight: "700" },
+  footer: {
+    bottom: 24,
+    left: 0,
+    position: "absolute",
+    right: 0,
+  },
 });

@@ -122,16 +122,19 @@ export interface CreditReconciliation {
 
 export interface PaginatedCredit<T> {
   results: T[];
-  totalPages: number;
-  totalElements: number;
-  page: number;
-  pageSize: number;
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+  };
 }
 
 // ======== CONTRIBUTION TYPES (NEW API CONTRACT) ========
 
 export type ContributionMethod = "Mpesa" | "Bank" | "cash";
-export type ContributionStatus = "pending" | "confirmed" | "failed" | "rejected";
+export type ContributionStatus =
+  "pending" | "confirmed" | "failed" | "rejected";
 export type ContributionFrequency = "none" | "weekly" | "monthly";
 
 export interface Contribution {
@@ -141,6 +144,8 @@ export interface Contribution {
   method: ContributionMethod;
   reference?: string;
   status: ContributionStatus;
+  contributionType?: string;
+  contributionTypeName?: string;
   contributedAt: string;
   confirmedAt?: string;
 }
@@ -174,11 +179,25 @@ export interface CreateContributionRequest {
   method: ContributionMethod;
   reference?: string;
   idempotencyKey?: string;
+  contributionType?: string;
+}
+
+export interface ContributionType {
+  id: string;
+  name: string;
+  description?: string;
+  amount: number;
+  currency: string;
+  frequency: ContributionFrequency;
+  active: boolean;
+  dueDay?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ContributionListResponse<T extends Contribution> {
   results: T[];
-  pagination: PaginatedCredit<T>["totalPages"] extends number
+  pagination: PaginatedCredit<T>["pagination"]["totalPages"] extends number
     ? {
         page: number;
         pageSize: number;

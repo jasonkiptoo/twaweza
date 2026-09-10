@@ -5,12 +5,13 @@
  */
 
 import type {
-  Contribution,
-  GroupContribution,
+    Contribution as CreditContribution,
+    GroupContribution as CreditGroupContribution,
+    DashboardSummary,
 } from "@/types/creditManagement";
-import type { DashboardSummary } from "@/types/creditManagement";
-import { api, authHeaders } from "./api";
+import type { Contribution } from "@/types/member";
 import { adaptContributionList } from "@/utils/adapters";
+import { api, authHeaders } from "./api";
 
 interface Pagination {
   page: number;
@@ -39,7 +40,9 @@ interface UserSummaryResponse {
  * Build the dashboard model from the backend's existing user summary route.
  * Group details remain available through groupApi and are not fabricated here.
  */
-export async function getDashboardSummary(token: string): Promise<DashboardSummary> {
+export async function getDashboardSummary(
+  token: string,
+): Promise<DashboardSummary> {
   const { data } = await api.get<UserSummaryResponse>("/auth/user-summary", {
     headers: authHeaders(token),
   });
@@ -80,14 +83,14 @@ export async function getMyContributions(
   page = 1,
   pageSize = 20,
 ): Promise<{ results: Contribution[]; pagination: Pagination }> {
-  const { data } = await api.get(
-    "/contributions/my-contributions",
-    {
-      params: { page, limit: pageSize },
-      headers: authHeaders(token),
-    },
-  );
-  return adaptContributionList(data);
+  const { data } = await api.get("/contributions/my-contributions", {
+    params: { page, limit: pageSize },
+    headers: authHeaders(token),
+  });
+  return adaptContributionList(data) as unknown as {
+    results: Contribution[];
+    pagination: Pagination;
+  };
 }
 
 /**
@@ -98,16 +101,13 @@ export async function getGroupContributions(
   token: string,
   page = 1,
   pageSize = 20,
-): Promise<{ results: GroupContribution[]; pagination: Pagination }> {
-  const { data } = await api.get(
-    "/admin/contributions",
-    {
-      params: { page, limit: pageSize },
-      headers: authHeaders(token),
-    },
-  );
-  return adaptContributionList(data) as {
-    results: GroupContribution[];
+): Promise<{ results: CreditGroupContribution[]; pagination: Pagination }> {
+  const { data } = await api.get("/admin/contributions", {
+    params: { page, limit: pageSize },
+    headers: authHeaders(token),
+  });
+  return adaptContributionList(data) as unknown as {
+    results: CreditGroupContribution[];
     pagination: Pagination;
   };
 }
@@ -123,14 +123,10 @@ export async function createContribution(
     reference?: string;
     phone?: string;
   },
-): Promise<{ contribution: Contribution }> {
-  const { data } = await api.post(
-    "/contributions/add",
-    payload,
-    {
-      headers: authHeaders(token),
-    },
-  );
+): Promise<{ contribution: CreditContribution }> {
+  const { data } = await api.post("/contributions/add", payload, {
+    headers: authHeaders(token),
+  });
   return data;
 }
 
@@ -140,7 +136,7 @@ export async function createContribution(
 export async function confirmContribution(
   token: string,
   contributionId: string,
-): Promise<{ contribution: Contribution }> {
+): Promise<{ contribution: CreditContribution }> {
   const { data } = await api.put(
     `/admin/contributions/approve/${contributionId}`,
     undefined,
@@ -158,7 +154,7 @@ export async function rejectContribution(
   token: string,
   contributionId: string,
   reason?: string,
-): Promise<{ contribution: Contribution }> {
+): Promise<{ contribution: CreditContribution }> {
   const { data } = await api.put(
     `/admin/contributions/reject/${contributionId}`,
     reason ? { reason } : undefined,

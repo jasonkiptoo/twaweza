@@ -1,9 +1,14 @@
+import type { Pagination } from "@/types/api";
 import type {
+    Contribution,
+    ContributionSettings,
+    ContributionType,
     CreditLoan,
     CreditLoanApplication,
     CreditLoanSchedule,
     CreditProduct,
     CreditReconciliation,
+    GroupContribution,
     LoanDecision,
     PaginatedCredit,
     PaymentMethod,
@@ -225,6 +230,170 @@ export async function reconcileCreditLoan(token: string, loanId: string) {
   return data as CreditReconciliation;
 }
 
+function contributionPageResult<T>(data: unknown): {
+  results: T[];
+  pagination: Pagination;
+} {
+  const record = (data && typeof data === "object" ? data : {}) as {
+    results?: unknown[];
+    pagination?: {
+      page?: number;
+      pageSize?: number;
+      total?: number;
+      totalPages?: number;
+    };
+  };
+  return {
+    results: (record.results ?? []) as T[],
+    pagination: normalizePagination({
+      page: record.pagination?.page,
+      pageSize: record.pagination?.pageSize,
+      totalElements: record.pagination?.total,
+      totalPages: record.pagination?.totalPages,
+    }),
+  };
+}
+
+export async function getContributionSettings(
+  token: string,
+): Promise<ContributionSettings> {
+  const { data } = await api.get("/credit-management/contributions/settings", {
+    headers: authHeaders(token),
+  });
+  return (data as { settings: ContributionSettings }).settings;
+}
+
+export async function updateContributionSettings(
+  token: string,
+  payload: Partial<ContributionSettings>,
+): Promise<ContributionSettings> {
+  const { data } = await api.put(
+    "/credit-management/contributions/settings",
+    payload,
+    {
+      headers: authHeaders(token),
+    },
+  );
+  return (data as { settings: ContributionSettings }).settings;
+}
+
+export async function listContributionTypes(
+  token: string,
+): Promise<ContributionType[]> {
+  const { data } = await api.get("/credit-management/contribution-types", {
+    headers: authHeaders(token),
+  });
+  return (data as { results: ContributionType[] }).results ?? [];
+}
+
+export async function createContributionType(
+  token: string,
+  payload: Omit<ContributionType, "id">,
+): Promise<ContributionType> {
+  const { data } = await api.post(
+    "/credit-management/contribution-types",
+    payload,
+    {
+      headers: authHeaders(token),
+    },
+  );
+  return (data as { contributionType: ContributionType }).contributionType;
+}
+
+export async function updateContributionType(
+  token: string,
+  typeId: string,
+  payload: Partial<ContributionType>,
+): Promise<ContributionType> {
+  const { data } = await api.put(
+    `/credit-management/contribution-types/${typeId}`,
+    payload,
+    {
+      headers: authHeaders(token),
+    },
+  );
+  return (data as { contributionType: ContributionType }).contributionType;
+}
+
+export async function deleteContributionType(
+  token: string,
+  typeId: string,
+): Promise<void> {
+  await api.delete(`/credit-management/contribution-types/${typeId}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export async function createCreditContribution(
+  token: string,
+  payload: {
+    amount: number;
+    method: "Mpesa" | "Bank" | "cash";
+    reference?: string;
+    contributionType?: string;
+    idempotencyKey?: string;
+  },
+): Promise<Contribution> {
+  const { data } = await api.post("/credit-management/contributions", payload, {
+    headers: {
+      ...authHeaders(token),
+      ...(payload.idempotencyKey
+        ? { "Idempotency-Key": payload.idempotencyKey }
+        : {}),
+    },
+  });
+  return (data as { contribution: Contribution }).contribution;
+}
+
+export async function listMyContributions(
+  token: string,
+  page = 1,
+  pageSize = 20,
+): Promise<{ results: Contribution[]; pagination: Pagination }> {
+  const { data } = await api.get("/credit-management/contributions/mine", {
+    params: { page, pageSize },
+    headers: authHeaders(token),
+  });
+  return contributionPageResult<Contribution>(data);
+}
+
+export async function listGroupCreditContributions(
+  token: string,
+  page = 1,
+  pageSize = 20,
+): Promise<{ results: GroupContribution[]; pagination: Pagination }> {
+  const { data } = await api.get("/credit-management/contributions/group", {
+    params: { page, pageSize },
+    headers: authHeaders(token),
+  });
+  return contributionPageResult<GroupContribution>(data);
+}
+
+export async function confirmCreditContribution(
+  token: string,
+  contributionId: string,
+): Promise<Contribution> {
+  const { data } = await api.put(
+    `/credit-management/contributions/${contributionId}/confirm`,
+    undefined,
+    { headers: authHeaders(token) },
+  );
+  return (data as { contribution: Contribution }).contribution;
+}
+
+export async function rejectCreditContribution(
+  token: string,
+  contributionId: string,
+  reason?: string,
+): Promise<Contribution> {
+  const { data } = await api.put(
+    `/credit-management/contributions/${contributionId}/reject`,
+    reason ? { reason } : undefined,
+    { headers: authHeaders(token) },
+  );
+  return (data as { contribution: Contribution }).contribution;
+}
+
 export const creditManagementApi = {
   listProducts: listCreditProducts,
   createProduct: createCreditProduct,
@@ -238,4 +407,15 @@ export const creditManagementApi = {
   recordPayment: recordCreditPayment,
   reconcileLoan: reconcileCreditLoan,
   portfolioReport: getPortfolio,
+  getContributionSettings,
+  updateContributionSettings,
+  listContributionTypes,
+  createContributionType,
+  updateContributionType,
+  deleteContributionType,
+  createCreditContribution,
+  listMyContributions,
+  listGroupCreditContributions,
+  confirmCreditContribution,
+  rejectCreditContribution,
 };

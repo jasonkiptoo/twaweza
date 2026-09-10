@@ -1,5 +1,5 @@
-import { Button, ButtonSpinner, ButtonText } from "./button";
 import type { ComponentProps } from "react";
+import { Button, ButtonSpinner, ButtonText } from "./button";
 
 type AppButtonProps = ComponentProps<typeof Button> & {
   title: string;
@@ -14,10 +14,8 @@ export function AppButton({
 }: AppButtonProps) {
   return (
     <Button {...props} isDisabled={loading || isDisabled}>
-      <>
-        {loading && <ButtonSpinner />}
-        <ButtonText>{title}</ButtonText>
-      </>
+      {loading ? <ButtonSpinner /> : null}
+      <ButtonText>{title}</ButtonText>
     </Button>
   );
 }

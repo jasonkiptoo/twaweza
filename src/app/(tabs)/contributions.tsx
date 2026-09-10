@@ -1,17 +1,17 @@
-import { useEffect } from "react";
-import { RefreshControl, ScrollView } from "react-native";
 import { Screen } from "@/components/layout/Screen";
-import { AppCard } from "@/components/ui/AppCard";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
-import { AppSkeleton } from "@/components/ui/AppSkeleton";
-import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { AppButton } from "@/components/ui/AppButton";
+import { AppCard } from "@/components/ui/AppCard";
+import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
+import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
 import { useContributionStore } from "@/store/contributionStore";
+import { useEffect } from "react";
+import { RefreshControl, ScrollView } from "react-native";
 
 export default function ContributionsScreen() {
   const token = useAuthStore((state) => state.token);
@@ -57,13 +57,14 @@ export default function ContributionsScreen() {
             <VStack className="gap-2">
               <VStack className="flex-row items-center justify-between">
                 <Text className="font-semibold">
-                  {item.month ?? ""} {item.year ?? ""}
+                  {item.contributionTypeName ?? "Contribution"}
                 </Text>
                 <StatusBadge status={item.status} />
               </VStack>
               <CurrencyAmount value={item.amount} />
               <Text size="sm" className="text-muted-foreground">
-                {item.paymentMethod ?? "Payment method unavailable"}{" "}
+                {item.method} •{" "}
+                {new Date(item.contributedAt).toLocaleDateString()}{" "}
                 {item.reference ? `• ${item.reference}` : ""}
               </Text>
             </VStack>

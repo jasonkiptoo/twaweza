@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { AppDialog } from "@/components/feedback/AppDialog";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
+import { AppCard } from "@/components/ui/AppCard";
 import { AppInput } from "@/components/ui/AppInput";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
-import { AppErrorState } from "@/components/ui/AppStates";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { FormField } from "@/components/ui/FormField";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
@@ -13,10 +13,13 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useContributionSettingsStore } from "@/store/contributionSettingsStore";
 import type {
-  ContributionFrequency,
-  ContributionMethod,
+    ContributionFrequency,
+    ContributionMethod,
+    ContributionType,
 } from "@/types/creditManagement";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { useEffect, useMemo, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 const frequencies: { label: string; value: ContributionFrequency }[] = [
   { label: "None", value: "none" },
@@ -65,6 +68,24 @@ const defaultForm: SettingsForm = {
   currency: "KES",
 };
 
+interface TypeForm {
+  name: string;
+  description: string;
+  amount: string;
+  currency: string;
+  frequency: ContributionFrequency;
+  active: boolean;
+}
+
+const defaultTypeForm: TypeForm = {
+  name: "",
+  description: "",
+  amount: "",
+  currency: "KES",
+  frequency: "monthly",
+  active: true,
+};
+
 export default function AdminContributionSettingsScreen() {
   const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
@@ -74,13 +95,32 @@ export default function AdminContributionSettingsScreen() {
   const error = useContributionSettingsStore((state) => state.error);
   const fetchSettings = useContributionSettingsStore((state) => state.fetch);
   const updateSettings = useContributionSettingsStore((state) => state.update);
+  const types = useContributionSettingsStore((state) => state.types);
+  const typesLoading = useContributionSettingsStore(
+    (state) => state.typesLoading,
+  );
+  const mutatingType = useContributionSettingsStore(
+    (state) => state.mutatingType,
+  );
+  const typesError = useContributionSettingsStore((state) => state.typesError);
+  const fetchTypes = useContributionSettingsStore((state) => state.fetchTypes);
+  const addType = useContributionSettingsStore((state) => state.addType);
+  const editType = useContributionSettingsStore((state) => state.editType);
 
   const [form, setForm] = useState<SettingsForm>(defaultForm);
   const [feedback, setFeedback] = useState("");
 
+  const [typeDialogOpen, setTypeDialogOpen] = useState(false);
+  const [editingType, setEditingType] = useState<ContributionType | null>(null);
+  const [typeForm, setTypeForm] = useState<TypeForm>(defaultTypeForm);
+  const [typeFeedback, setTypeFeedback] = useState("");
+
   useEffect(() => {
-    if (token) void fetchSettings(token);
-  }, [fetchSettings, token]);
+    if (token) {
+      void fetchSettings(token);
+      void fetchTypes(token);
+    }
+  }, [fetchSettings, fetchTypes, token]);
 
   useEffect(() => {
     if (!settings) return;
@@ -137,7 +177,62 @@ export default function AdminContributionSettingsScreen() {
     }
   };
 
-  function renderToggle(field: "enabled" | "required" | "allowPendingForEligibility" | "approvalRequired", label: string) {
+  const openAddType = () => {
+    setEditingType(null);
+    setTypeForm(defaultTypeForm);
+    setTypeFeedback("");
+    setTypeDialogOpen(true);
+  };
+
+  const openEditType = (type: ContributionType) => {
+    setEditingType(type);
+    setTypeForm({
+      name: type.name,
+      description: type.description ?? "",
+      amount: String(type.amount),
+      currency: type.currency,
+      frequency: type.frequency,
+      active: type.active,
+    });
+    setTypeFeedback("");
+    setTypeDialogOpen(true);
+  };
+
+  const handleSaveType = async () => {
+    if (!token) return;
+    if (!typeForm.name.trim() || !typeForm.amount) {
+      setTypeFeedback("Name and amount are required.");
+      return;
+    }
+    setTypeFeedback("");
+    const payload = {
+      name: typeForm.name.trim(),
+      description: typeForm.description.trim(),
+      amount: Number(typeForm.amount) || 0,
+      currency: typeForm.currency,
+      frequency: typeForm.frequency,
+      active: typeForm.active,
+    };
+    try {
+      if (editingType) {
+        await editType(token, editingType.id, payload);
+      } else {
+        await addType(token, payload);
+      }
+      setTypeDialogOpen(false);
+    } catch (err) {
+      setTypeFeedback(getApiErrorMessage(err));
+    }
+  };
+
+  function renderToggle(
+    field:
+      | "enabled"
+      | "required"
+      | "allowPendingForEligibility"
+      | "approvalRequired",
+    label: string,
+  ) {
     return (
       <FormField label={label}>
         <View style={styles.row}>
@@ -157,7 +252,9 @@ export default function AdminContributionSettingsScreen() {
               <Text
                 style={{
                   color:
-                    form[field] === opt.value ? colors.onPrimary : colors.foreground,
+                    form[field] === opt.value
+                      ? colors.onPrimary
+                      : colors.textPrimary,
                 }}
               >
                 {opt.label}
@@ -179,11 +276,54 @@ export default function AdminContributionSettingsScreen() {
         <VStack className="gap-2">
           <Heading size="3xl">Contribution settings</Heading>
           <Text className="text-muted-foreground">
-            Configure the group's contribution policy and loan eligibility rules.
+            Configure the group's contribution policy and loan eligibility
+            rules.
           </Text>
         </VStack>
 
         {loading && !settings && <AppSkeleton height={200} />}
+
+        <VStack className="gap-3">
+          <VStack className="flex-row items-center justify-between">
+            <Heading size="lg">Contribution types</Heading>
+            <AppButton title="+ Add" onPress={openAddType} />
+          </VStack>
+          <Text className="text-muted-foreground">
+            Named contributions members can choose from, e.g. Monthly
+            Contribution, Welfare, Development Fund.
+          </Text>
+          {typesLoading && !types.length && <AppSkeleton height={100} />}
+          {typesError && (
+            <Text style={{ color: colors.error }}>{typesError}</Text>
+          )}
+          {!typesLoading && !types.length && (
+            <AppEmptyState
+              title="No contribution types yet"
+              message="Add a contribution type so members can select it when contributing."
+            />
+          )}
+          {types.map((type) => (
+            <Pressable key={type.id} onPress={() => openEditType(type)}>
+              <AppCard>
+                <VStack className="gap-1">
+                  <VStack className="flex-row items-center justify-between">
+                    <Text className="font-semibold">{type.name}</Text>
+                    <Text
+                      style={{
+                        color: type.active ? colors.success : colors.error,
+                      }}
+                    >
+                      {type.active ? "Active" : "Inactive"}
+                    </Text>
+                  </VStack>
+                  <Text className="text-muted-foreground">
+                    {type.currency} {type.amount} • {type.frequency}
+                  </Text>
+                </VStack>
+              </AppCard>
+            </Pressable>
+          ))}
+        </VStack>
 
         {error && (
           <AppErrorState
@@ -193,7 +333,11 @@ export default function AdminContributionSettingsScreen() {
         )}
 
         {feedback && (
-          <Text className={feedback.startsWith("✅") ? "text-success" : "text-error"}>
+          <Text
+            className={
+              feedback.startsWith("✅") ? "text-success" : "text-error"
+            }
+          >
             {feedback}
           </Text>
         )}
@@ -233,7 +377,7 @@ export default function AdminContributionSettingsScreen() {
                       color:
                         form.minimumFrequency === opt.value
                           ? colors.onPrimary
-                          : colors.foreground,
+                          : colors.textPrimary,
                     }}
                   >
                     {opt.label}
@@ -279,8 +423,14 @@ export default function AdminContributionSettingsScreen() {
             />
           </FormField>
 
-          {renderToggle("allowPendingForEligibility", "Count pending contributions toward eligibility")}
-          {renderToggle("approvalRequired", "Require approval for contributions")}
+          {renderToggle(
+            "allowPendingForEligibility",
+            "Count pending contributions toward eligibility",
+          )}
+          {renderToggle(
+            "approvalRequired",
+            "Require approval for contributions",
+          )}
 
           <FormField label="Allowed payment methods">
             <View style={styles.row}>
@@ -302,7 +452,7 @@ export default function AdminContributionSettingsScreen() {
                     style={{
                       color: form.allowedMethods.includes(opt.value)
                         ? colors.onPrimary
-                        : colors.foreground,
+                        : colors.textPrimary,
                     }}
                   >
                     {opt.label}
@@ -328,6 +478,129 @@ export default function AdminContributionSettingsScreen() {
           />
         </VStack>
       </ScrollView>
+
+      <AppDialog
+        open={typeDialogOpen}
+        title={editingType ? "Edit contribution type" : "Add contribution type"}
+        onClose={() => setTypeDialogOpen(false)}
+        footer={
+          <>
+            <AppButton
+              title="Cancel"
+              variant="outline"
+              onPress={() => setTypeDialogOpen(false)}
+            />
+            <AppButton
+              title="Save"
+              loading={mutatingType}
+              onPress={handleSaveType}
+            />
+          </>
+        }
+      >
+        <VStack className="gap-3">
+          {typeFeedback && (
+            <Text style={{ color: colors.error }}>{typeFeedback}</Text>
+          )}
+          <FormField label="Name" required>
+            <AppInput
+              value={typeForm.name}
+              onChangeText={(v) =>
+                setTypeForm((prev) => ({ ...prev, name: v }))
+              }
+              placeholder="e.g., Monthly Contribution"
+            />
+          </FormField>
+          <FormField label="Description">
+            <AppInput
+              value={typeForm.description}
+              onChangeText={(v) =>
+                setTypeForm((prev) => ({ ...prev, description: v }))
+              }
+              placeholder="Optional description"
+            />
+          </FormField>
+          <FormField label="Amount" required>
+            <AppInput
+              value={typeForm.amount}
+              onChangeText={(v) =>
+                setTypeForm((prev) => ({ ...prev, amount: v }))
+              }
+              keyboardType="number-pad"
+              placeholder="e.g., 5050"
+            />
+          </FormField>
+          <FormField label="Frequency">
+            <View style={styles.row}>
+              {frequencies.map((opt) => (
+                <Pressable
+                  key={opt.value}
+                  onPress={() =>
+                    setTypeForm((prev) => ({ ...prev, frequency: opt.value }))
+                  }
+                  style={[
+                    styles.chip,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor:
+                        typeForm.frequency === opt.value
+                          ? colors.primary
+                          : "transparent",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color:
+                        typeForm.frequency === opt.value
+                          ? colors.onPrimary
+                          : colors.textPrimary,
+                    }}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </FormField>
+          <FormField label="Active">
+            <View style={styles.row}>
+              {boolOptions.map((opt) => (
+                <Pressable
+                  key={opt.value}
+                  onPress={() =>
+                    setTypeForm((prev) => ({
+                      ...prev,
+                      active: opt.value === "true",
+                    }))
+                  }
+                  style={[
+                    styles.chip,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor:
+                        String(typeForm.active) === opt.value
+                          ? colors.primary
+                          : "transparent",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color:
+                        String(typeForm.active) === opt.value
+                          ? colors.onPrimary
+                          : colors.textPrimary,
+                    }}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </FormField>
+        </VStack>
+      </AppDialog>
     </Screen>
   );
 }

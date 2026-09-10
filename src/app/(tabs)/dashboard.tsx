@@ -1,7 +1,7 @@
 /**
  * Dashboard Screen (Redesigned)
  * Shows financial snapshot: ME + MY GROUP + MY LOANS + MY CONTRIBUTIONS
- * 
+ *
  * Key Principles:
  * - Backend is the source of truth for all financial data
  * - No calculations of financial values in React
@@ -10,23 +10,9 @@
  * - Pull-to-refresh support
  */
 
-import { useFocusEffect, router } from "expo-router";
-import {
-  AlertCircle,
-  Bell,
-  Eye,
-  EyeOff,
-  Plus,
-  Send,
-  TrendingUp,
-  Wallet,
-  WalletCards,
-} from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppCard } from "@/components/ui/AppCard";
-import { CardSkeleton } from "@/components/ui/AppSkeleton";
+import { AppInput } from "@/components/ui/AppInput";
 import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { Heading } from "@/components/ui/heading";
 import { IconButton } from "@/components/ui/IconButton";
@@ -34,12 +20,23 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
-import { useDashboardStore } from "@/store/dashboardStore";
+import { useContributionSettingsStore } from "@/store/contributionSettingsStore";
 import { useContributionStore } from "@/store/contributionStore";
+import { useDashboardStore } from "@/store/dashboardStore";
 import { useGroupStore } from "@/store/groupStore";
-import { formatCurrency } from "@/utils/currency";
+import { useNotificationStore } from "@/store/notificationStore";
 import { isAdmin } from "@/types/auth";
-import type { DashboardSummary, GroupFinancialSummary } from "@/types/creditManagement";
+import { getApiErrorMessage } from "@/utils/apiError";
+import { formatCurrency } from "@/utils/currency";
+import { router, useFocusEffect } from "expo-router";
+import {
+    Bell,
+    Plus,
+    Send,
+    WalletCards
+} from "lucide-react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
@@ -62,11 +59,33 @@ export default function DashboardScreen() {
   const contributions = useContributionStore((state) => state.contributions);
   const contribLoading = useContributionStore((state) => state.loading);
   const fetchContributions = useContributionStore((state) => state.fetch);
+  const addContribution = useContributionStore((state) => state.add);
+  const contributionMutating = useContributionStore((state) => state.mutating);
+
+  // Contribution types (admin-configured)
+  const contributionTypes = useContributionSettingsStore(
+    (state) => state.types,
+  );
+  const fetchContributionTypes = useContributionSettingsStore(
+    (state) => state.fetchTypes,
+  );
+
+  // Notifications
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const refreshUnreadCount = useNotificationStore(
+    (state) => state.refreshUnreadCount,
+  );
 
   // UI state
   const [refreshing, setRefreshing] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [showContributionModal, setShowContributionModal] = useState(false);
+  const [contributionForm, setContributionForm] = useState<{
+    typeId?: string;
+    amount: string;
+    method: "Mpesa" | "Bank" | "cash";
+  }>({ amount: "", method: "Mpesa" });
+  const [contributionFeedback, setContributionFeedback] = useState("");
 
   // Load data on component mount
   useEffect(() => {
@@ -74,8 +93,17 @@ export default function DashboardScreen() {
       fetchDashboardSummary(token);
       fetchContributions(token);
       fetchGroup(token);
+      fetchContributionTypes(token);
+      refreshUnreadCount(token);
     }
-  }, [token, fetchDashboardSummary, fetchContributions, fetchGroup]);
+  }, [
+    token,
+    fetchDashboardSummary,
+    fetchContributions,
+    fetchGroup,
+    fetchContributionTypes,
+    refreshUnreadCount,
+  ]);
 
   // Reload data when screen is focused
   useFocusEffect(
@@ -136,8 +164,35 @@ export default function DashboardScreen() {
               </Text>
             )}
           </VStack>
-          <IconButton label="Notifications">
-            <Bell size={22} color={colors.textPrimary} />
+          <IconButton
+            label="Notifications"
+            onPress={() => router.push("/(tabs)/notifications")}
+          >
+            <View>
+              <Bell size={22} color={colors.textPrimary} />
+              {unreadCount > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -4,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    backgroundColor: colors.error,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 3,
+                  }}
+                >
+                  <Text
+                    style={{ color: "white", fontSize: 10, fontWeight: "700" }}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
           </IconButton>
         </View>
 
@@ -171,7 +226,8 @@ export default function DashboardScreen() {
                       dashboardSummary.contributions.amount || 0,
                       dashboardSummary.group.currency,
                     )}{" "}
-                    / {formatCurrency(
+                    /{" "}
+                    {formatCurrency(
                       (dashboardSummary.contributions.amount || 0) *
                         (dashboardSummary.contributions.periods?.required || 1),
                       dashboardSummary.group.currency,
@@ -204,8 +260,8 @@ export default function DashboardScreen() {
                 {/* Periods */}
                 <Text className="text-xs text-muted-foreground">
                   {dashboardSummary.contributions.periods?.completed || 0} of{" "}
-                  {dashboardSummary.contributions.periods?.required || 0} required
-                  periods
+                  {dashboardSummary.contributions.periods?.required || 0}{" "}
+                  required periods
                 </Text>
               </VStack>
             </AppCard>
@@ -217,61 +273,99 @@ export default function DashboardScreen() {
           <VStack className="gap-3">
             <Heading size="lg">My Financial Position</Heading>
             <View className="gap-2">
-              {/* My Contributions */}
+              {/* My Contributions - signature card */}
               <AppCard>
-                <View className="flex-row items-center justify-between gap-3">
-                  <View
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: colors.success + "20",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text style={{ fontSize: 20 }}>💰</Text>
+                <VStack className="gap-3">
+                  <View className="flex-row items-center justify-between gap-3">
+                    <View
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        backgroundColor: colors.success + "20",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={{ fontSize: 20 }}>💰</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text className="text-xs text-muted-foreground">
+                        My Contributions
+                        {group?.name || dashboardSummary.group.name
+                          ? ` • ${group?.name || dashboardSummary.group.name}`
+                          : ""}
+                      </Text>
+                      <Text className="font-semibold text-base">
+                        {balanceVisible
+                          ? formatCurrency(
+                              dashboardSummary.myContribution.confirmedTotal ||
+                                0,
+                              dashboardSummary.group.currency,
+                            )
+                          : "••••••"}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => setBalanceVisible((visible) => !visible)}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        balanceVisible
+                          ? "Hide contribution balance"
+                          : "Show contribution balance"
+                      }
+                      style={{
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        borderRadius: 6,
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                      }}
+                    >
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{ color: colors.primary }}
+                      >
+                        {balanceVisible ? "Hide" : "Show"}
+                      </Text>
+                    </Pressable>
+                    {dashboardSummary.myContribution.pendingTotal > 0 && (
+                      <Text className="text-xs text-orange-500">
+                        ⏳{" "}
+                        {formatCurrency(
+                          dashboardSummary.myContribution.pendingTotal,
+                          dashboardSummary.group.currency,
+                        )}
+                      </Text>
+                    )}
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text className="text-xs text-muted-foreground">
-                      My Contributions
-                    </Text>
-                    <Text className="font-semibold text-base">
-                      {balanceVisible
-                        ? formatCurrency(
-                            dashboardSummary.myContribution.confirmedTotal || 0,
-                            dashboardSummary.group.currency,
-                          )
-                        : "••••••"}
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => setBalanceVisible((visible) => !visible)}
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      balanceVisible ? "Hide contribution balance" : "Show contribution balance"
-                    }
-                    style={{
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      borderRadius: 6,
-                      paddingHorizontal: 10,
-                      paddingVertical: 6,
-                    }}
-                  >
-                    <Text className="text-xs font-semibold" style={{ color: colors.primary }}>
-                      {balanceVisible ? "Hide" : "Show"}
-                    </Text>
-                  </Pressable>
-                  {dashboardSummary.myContribution.pendingTotal > 0 && (
-                    <Text className="text-xs text-orange-500">
-                      ⏳ {formatCurrency(
-                        dashboardSummary.myContribution.pendingTotal,
-                        dashboardSummary.group.currency,
-                      )}
-                    </Text>
+                  {contributions[0] && (
+                    <View className="flex-row items-center justify-between border-t border-border pt-2">
+                      <Text className="text-xs text-muted-foreground">
+                        Last:{" "}
+                        {contributions[0].contributionTypeName ??
+                          "Contribution"}
+                        {" • "}
+                        {new Date(
+                          contributions[0].contributedAt,
+                        ).toLocaleDateString()}
+                      </Text>
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{
+                          color:
+                            contributions[0].status === "confirmed"
+                              ? colors.success
+                              : contributions[0].status === "pending"
+                                ? colors.warning
+                                : colors.error,
+                        }}
+                      >
+                        {contributions[0].status}
+                      </Text>
+                    </View>
                   )}
-                </View>
+                </VStack>
               </AppCard>
 
               {/* Active Loans */}
@@ -416,7 +510,9 @@ export default function DashboardScreen() {
                   <View className="flex-row items-center gap-3">
                     <Text style={{ fontSize: 20 }}>⚙️</Text>
                     <View style={{ flex: 1 }}>
-                      <Text className="font-semibold">Group Administration</Text>
+                      <Text className="font-semibold">
+                        Group Administration
+                      </Text>
                       <Text className="text-xs text-muted-foreground">
                         Manage approvals, settings, and members
                       </Text>
@@ -439,7 +535,8 @@ export default function DashboardScreen() {
                                 fontWeight: "600",
                               }}
                             >
-                              {dashboardSummary.admin?.pendingContributions} pending
+                              {dashboardSummary.admin?.pendingContributions}{" "}
+                              pending
                             </Text>
                           </View>
                         )}
@@ -459,7 +556,8 @@ export default function DashboardScreen() {
                                 fontWeight: "600",
                               }}
                             >
-                              {dashboardSummary.admin?.pendingApplications} loans
+                              {dashboardSummary.admin?.pendingApplications}{" "}
+                              loans
                             </Text>
                           </View>
                         )}
@@ -500,7 +598,9 @@ export default function DashboardScreen() {
                         )}
                       </Text>
                       <Text className="text-xs text-muted-foreground mt-1">
-                        {new Date(contribution.contributedAt).toLocaleDateString()}
+                        {new Date(
+                          contribution.contributedAt,
+                        ).toLocaleDateString()}
                       </Text>
                       {contribution.reference && (
                         <Text className="text-xs text-muted-foreground">
@@ -560,7 +660,6 @@ export default function DashboardScreen() {
       </ScrollView>
 
       {/* ========== CONTRIBUTION MODAL ========== */}
-      {/* TODO: Import and add ContributionModal component */}
       {showContributionModal && (
         <View
           style={{
@@ -582,6 +681,138 @@ export default function DashboardScreen() {
             >
               <VStack className="gap-4">
                 <Text className="text-lg font-bold">Add Contribution</Text>
+
+                {contributionFeedback && (
+                  <Text style={{ color: colors.error }}>
+                    {contributionFeedback}
+                  </Text>
+                )}
+
+                {contributionTypes.length > 0 && (
+                  <VStack className="gap-2">
+                    <Text className="text-sm font-semibold">
+                      Select contribution
+                    </Text>
+                    {contributionTypes
+                      .filter((type) => type.active)
+                      .map((type) => (
+                        <Pressable
+                          key={type.id}
+                          onPress={() =>
+                            setContributionForm((prev) => ({
+                              ...prev,
+                              typeId: type.id,
+                              amount: String(type.amount),
+                            }))
+                          }
+                          style={{
+                            borderWidth: 1,
+                            borderColor:
+                              contributionForm.typeId === type.id
+                                ? colors.primary
+                                : colors.border,
+                            borderRadius: 10,
+                            padding: 10,
+                          }}
+                        >
+                          <Text className="font-semibold">{type.name}</Text>
+                          <Text className="text-xs text-muted-foreground">
+                            {formatCurrency(type.amount, type.currency)} •{" "}
+                            {type.frequency}
+                          </Text>
+                        </Pressable>
+                      ))}
+                  </VStack>
+                )}
+
+                <VStack className="gap-1">
+                  <Text className="text-sm font-semibold">Amount</Text>
+                  <AppInput
+                    value={contributionForm.amount}
+                    onChangeText={(v) =>
+                      setContributionForm((prev) => ({ ...prev, amount: v }))
+                    }
+                    keyboardType="number-pad"
+                    placeholder="e.g., 500"
+                  />
+                </VStack>
+
+                <VStack className="gap-1">
+                  <Text className="text-sm font-semibold">Payment method</Text>
+                  <View className="flex-row gap-2">
+                    {(["Mpesa", "Bank", "cash"] as const).map((method) => (
+                      <Pressable
+                        key={method}
+                        onPress={() =>
+                          setContributionForm((prev) => ({ ...prev, method }))
+                        }
+                        style={{
+                          borderWidth: 1,
+                          borderColor:
+                            contributionForm.method === method
+                              ? colors.primary
+                              : colors.border,
+                          borderRadius: 999,
+                          paddingHorizontal: 14,
+                          paddingVertical: 6,
+                          backgroundColor:
+                            contributionForm.method === method
+                              ? colors.primary
+                              : "transparent",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color:
+                              contributionForm.method === method
+                                ? colors.onPrimary
+                                : colors.textPrimary,
+                          }}
+                        >
+                          {method}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </VStack>
+
+                <Pressable
+                  onPress={async () => {
+                    if (!token) return;
+                    const amount = Number(contributionForm.amount);
+                    if (!amount || amount <= 0) {
+                      setContributionFeedback("Enter a valid amount.");
+                      return;
+                    }
+                    setContributionFeedback("");
+                    try {
+                      await addContribution(token, {
+                        amount,
+                        method: contributionForm.method,
+                        contributionType: contributionForm.typeId,
+                      });
+                      setShowContributionModal(false);
+                      setContributionForm({ amount: "", method: "Mpesa" });
+                      void fetchDashboardSummary(token);
+                    } catch (err) {
+                      setContributionFeedback(getApiErrorMessage(err));
+                    }
+                  }}
+                  style={{
+                    backgroundColor: colors.primary,
+                    borderRadius: 8,
+                    paddingVertical: 12,
+                    alignItems: "center",
+                    opacity: contributionMutating ? 0.7 : 1,
+                  }}
+                >
+                  <Text style={{ color: colors.onPrimary, fontWeight: "600" }}>
+                    {contributionMutating
+                      ? "Submitting..."
+                      : "Submit Contribution"}
+                  </Text>
+                </Pressable>
+
                 <Pressable
                   onPress={() => setShowContributionModal(false)}
                   className="py-2"

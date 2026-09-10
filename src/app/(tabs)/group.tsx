@@ -1,11 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import { RefreshControl, ScrollView, View } from "react-native";
-import { Landmark, Settings, Users } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -13,10 +10,13 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
-import { useGroupStore } from "@/store/groupStore";
 import { useContributionStore } from "@/store/contributionStore";
+import { useGroupStore } from "@/store/groupStore";
 import { isAdmin } from "@/types/auth";
 import { useRouter } from "expo-router";
+import { Landmark, Settings, Users } from "lucide-react-native";
+import { useCallback, useEffect, useState } from "react";
+import { RefreshControl, ScrollView, View } from "react-native";
 
 const sections = ["Overview", "Contributions", "Members", "Bank Info"] as const;
 type GroupSection = (typeof sections)[number];
@@ -150,10 +150,11 @@ export default function GroupScreen() {
                 <View className="flex-row items-center justify-between">
                   <VStack className="gap-1">
                     <Text className="font-semibold">
-                      {item.month ?? ""} {item.year ?? ""}
+                      {item.contributionTypeName ?? "Contribution"}
                     </Text>
                     <Text size="sm" className="text-muted-foreground">
-                      {item.paymentMethod ?? "Payment method unavailable"}
+                      {item.method} •{" "}
+                      {new Date(item.contributedAt).toLocaleDateString()}
                     </Text>
                   </VStack>
                   <VStack className="items-end gap-1">
@@ -220,9 +221,10 @@ export default function GroupScreen() {
                     <VStack>
                       <Text className="font-semibold">
                         {bank.name ?? "Bank account"}
+                        {bank.isPrimary ? " (Primary)" : ""}
                       </Text>
                       <Text size="sm" className="text-muted-foreground">
-                        {bank.accountName ?? "Account details unavailable"}
+                        Paybill: {bank.paybill ?? "N/A"}
                       </Text>
                       <Text size="sm" className="text-muted-foreground">
                         {bank.accountNumber ?? "Account number unavailable"}

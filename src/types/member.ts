@@ -53,9 +53,11 @@ export interface GroupDetails {
     role?: string;
   }>;
   banks?: Array<{
+    id?: string;
+    _id?: string;
     name?: string;
-    accountName?: string;
+    paybill?: string;
     accountNumber?: string;
-    branch?: string;
+    isPrimary?: boolean;
   }>;
 }

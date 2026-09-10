@@ -5,7 +5,15 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useRouter } from "expo-router";
-import { Coins, FileCheck, Landmark, PackagePlus, Settings, UsersRound } from "lucide-react-native";
+import {
+  Building2,
+  Coins,
+  FileCheck,
+  Landmark,
+  PackagePlus,
+  Settings,
+  UsersRound,
+} from "lucide-react-native";
 import { Pressable, ScrollView } from "react-native";
 
 export default function AdminHomeScreen() {
@@ -26,7 +34,9 @@ export default function AdminHomeScreen() {
             </Text>
           </VStack>
           <Heading size="lg">Contributions</Heading>
-          <Pressable onPress={() => router.push("/admin/contribution-approvals")}>
+          <Pressable
+            onPress={() => router.push("/admin/contribution-approvals")}
+          >
             <AppCard>
               <VStack className="gap-2">
                 <Coins size={24} color={colors.primary} />
@@ -37,13 +47,16 @@ export default function AdminHomeScreen() {
               </VStack>
             </AppCard>
           </Pressable>
-          <Pressable onPress={() => router.push("/admin/contribution-settings")}>
+          <Pressable
+            onPress={() => router.push("/admin/contribution-settings")}
+          >
             <AppCard>
               <VStack className="gap-2">
                 <Settings size={24} color={colors.primary} />
                 <Heading size="lg">Contribution settings</Heading>
                 <Text className="text-muted-foreground">
-                  Configure the group's contribution policy and eligibility rules.
+                  Configure the group's contribution policy and eligibility
+                  rules.
                 </Text>
               </VStack>
             </AppCard>
@@ -61,6 +74,17 @@ export default function AdminHomeScreen() {
             </AppCard>
           </Pressable>
           <Heading size="lg">Group operations</Heading>
+          <Pressable onPress={() => router.push("/admin/bank-information")}>
+            <AppCard>
+              <VStack className="gap-2">
+                <Building2 size={24} color={colors.primary} />
+                <Heading size="lg">Bank information</Heading>
+                <Text className="text-muted-foreground">
+                  Manage the bank accounts members send contributions to.
+                </Text>
+              </VStack>
+            </AppCard>
+          </Pressable>
           <Pressable onPress={() => router.push("/admin/credit/applications")}>
             <AppCard>
               <VStack className="gap-2">

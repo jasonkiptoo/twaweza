@@ -52,6 +52,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="activity" options={{ href: null }} />
       <Tabs.Screen name="loans" options={{ href: null }} />
       <Tabs.Screen name="contributions" options={{ href: null }} />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
     </Tabs>
   );
 }
