@@ -295,7 +295,7 @@ export interface DashboardSummary {
     frequency: ContributionFrequency;
     amount: number;
     progress?: number; // percentage
-    periods: {
+    periods?: {
       required: number;
       completed: number;
     };

@@ -19,6 +19,7 @@ export interface ApiError {
   message: string;
   status?: number;
   details: ApiErrorDetail[];
+  reasons?: string[];
   isNetworkError: boolean;
   isAuthError: boolean;
 }

@@ -1,25 +1,23 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { CreditCard, FileText, PiggyBank } from "lucide-react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppCard } from "@/components/ui/AppCard";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
+import { useRouter } from "expo-router";
+import { CreditCard, FileText, PiggyBank } from "lucide-react-native";
+import { useState } from "react";
 import { Pressable } from "react-native";
 
 export default function CreditHome() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [section, setSection] = useState<"Contributions" | "Loans">("Contributions");
+  const [section, setSection] = useState<"Contributions" | "Loans">(
+    "Contributions",
+  );
   return (
-    <Screen>
+    <Screen eyebrow="Borrow with clarity" title="Finance" showBack>
       <VStack className="gap-5">
-        <VStack className="gap-1">
-          <Text className="text-muted-foreground">Borrow with clarity</Text>
-          <Heading size="3xl">Finance</Heading>
-        </VStack>
         <VStack className="flex-row gap-2">
           {(["Contributions", "Loans"] as const).map((item) => (
             <AppCard
@@ -33,7 +31,9 @@ export default function CreditHome() {
             >
               <Text
                 className="text-center font-semibold"
-                style={{ color: section === item ? colors.primary : colors.textPrimary }}
+                style={{
+                  color: section === item ? colors.primary : colors.textPrimary,
+                }}
               >
                 {item}
               </Text>
@@ -41,21 +41,21 @@ export default function CreditHome() {
           ))}
         </VStack>
         {section === "Contributions" && (
-        <Pressable
-          onPress={() => router.push("/(tabs)/contributions")}
-          accessibilityRole="button"
-          accessibilityLabel="Open contributions"
-        >
-          <AppCard>
-            <VStack className="gap-2">
-              <PiggyBank size={24} color={colors.primary} />
-              <Heading size="lg">Contributions</Heading>
-              <Text className="text-muted-foreground">
-                Review contribution history, payment references, and statuses.
-              </Text>
-            </VStack>
-          </AppCard>
-        </Pressable>
+          <Pressable
+            onPress={() => router.push("/(tabs)/contributions")}
+            accessibilityRole="button"
+            accessibilityLabel="Open contributions"
+          >
+            <AppCard>
+              <VStack className="gap-2">
+                <PiggyBank size={24} color={colors.primary} />
+                <Heading size="lg">Contributions</Heading>
+                <Text className="text-muted-foreground">
+                  Review contribution history, payment references, and statuses.
+                </Text>
+              </VStack>
+            </AppCard>
+          </Pressable>
         )}
         {section === "Loans" && (
           <>
@@ -75,7 +75,9 @@ export default function CreditHome() {
               </AppCard>
             </Pressable>
             <Pressable
-              onPress={() => router.push("/(tabs)/credit-management/applications")}
+              onPress={() =>
+                router.push("/(tabs)/credit-management/applications")
+              }
               accessibilityRole="button"
               accessibilityLabel="Open my applications"
             >

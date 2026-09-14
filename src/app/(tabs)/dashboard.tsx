@@ -29,14 +29,17 @@ import { isAdmin } from "@/types/auth";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { formatCurrency } from "@/utils/currency";
 import { router, useFocusEffect } from "expo-router";
-import {
-    Bell,
-    Plus,
-    Send,
-    WalletCards
-} from "lucide-react-native";
+import { Bell, Plus, Send, WalletCards } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import {
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    View,
+} from "react-native";
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
@@ -87,11 +90,25 @@ export default function DashboardScreen() {
   }>({ amount: "", method: "Mpesa" });
   const [contributionFeedback, setContributionFeedback] = useState("");
 
+  const confirmedContributionTotal = contributions.reduce(
+    (total, contribution) =>
+      contribution.status === "confirmed" ? total + contribution.amount : total,
+    0,
+  );
+  const pendingContributionTotal = contributions.reduce(
+    (total, contribution) =>
+      contribution.status === "pending" ? total + contribution.amount : total,
+    0,
+  );
+  const hasContributionProgress =
+    dashboardSummary?.contributions.progress !== undefined ||
+    dashboardSummary?.contributions.periods !== undefined;
+
   // Load data on component mount
   useEffect(() => {
     if (token) {
       fetchDashboardSummary(token);
-      fetchContributions(token);
+      fetchContributions(token, 1, 100);
       fetchGroup(token);
       fetchContributionTypes(token);
       refreshUnreadCount(token);
@@ -122,7 +139,7 @@ export default function DashboardScreen() {
     if (token) {
       await Promise.all([
         fetchDashboardSummary(token),
-        fetchContributions(token),
+        fetchContributions(token, 1, 100),
         fetchGroup(token),
       ]);
     }
@@ -140,7 +157,7 @@ export default function DashboardScreen() {
   const hasError = dashboardError;
 
   return (
-    <Screen>
+    <Screen showBack={false}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -209,7 +226,7 @@ export default function DashboardScreen() {
         )}
 
         {/* ========== CONTRIBUTION PROGRESS ========== */}
-        {dashboardSummary?.contributions ? (
+        {dashboardSummary?.contributions && hasContributionProgress ? (
           <VStack className="gap-3">
             <Heading size="lg">
               {dashboardSummary.contributions.frequency === "weekly"
@@ -222,19 +239,23 @@ export default function DashboardScreen() {
               <VStack className="gap-3">
                 <View className="flex-row items-center justify-between">
                   <Text className="font-semibold">
-                    {formatCurrency(
-                      dashboardSummary.contributions.amount || 0,
-                      dashboardSummary.group.currency,
-                    )}{" "}
-                    /{" "}
-                    {formatCurrency(
-                      (dashboardSummary.contributions.amount || 0) *
-                        (dashboardSummary.contributions.periods?.required || 1),
-                      dashboardSummary.group.currency,
-                    )}
+                    {dashboardSummary.contributions.amount > 0
+                      ? formatCurrency(
+                          dashboardSummary.contributions.amount,
+                          dashboardSummary.group.currency,
+                        )
+                      : "Contribution policy"}
+                    {dashboardSummary.contributions.periods &&
+                      ` / ${formatCurrency(
+                        dashboardSummary.contributions.amount *
+                          dashboardSummary.contributions.periods.required,
+                        dashboardSummary.group.currency,
+                      )}`}
                   </Text>
                   <Text className="text-xs text-muted-foreground">
-                    {dashboardSummary.contributions.progress || 0}%
+                    {dashboardSummary.contributions.progress !== undefined
+                      ? `${dashboardSummary.contributions.progress}%`
+                      : "Progress unavailable"}
                   </Text>
                 </View>
 
@@ -250,7 +271,7 @@ export default function DashboardScreen() {
                   <View
                     style={{
                       height: "100%",
-                      width: `${Math.min(dashboardSummary.contributions.progress || 0, 100)}%`,
+                      width: `${Math.min(dashboardSummary.contributions.progress ?? 0, 100)}%`,
                       backgroundColor: colors.primary,
                       borderRadius: 4,
                     }}
@@ -259,9 +280,9 @@ export default function DashboardScreen() {
 
                 {/* Periods */}
                 <Text className="text-xs text-muted-foreground">
-                  {dashboardSummary.contributions.periods?.completed || 0} of{" "}
-                  {dashboardSummary.contributions.periods?.required || 0}{" "}
-                  required periods
+                  {dashboardSummary.contributions.periods
+                    ? `${dashboardSummary.contributions.periods.completed} of ${dashboardSummary.contributions.periods.required} required periods`
+                    : "Required-period progress was not provided by the API"}
                 </Text>
               </VStack>
             </AppCard>
@@ -299,8 +320,7 @@ export default function DashboardScreen() {
                       <Text className="font-semibold text-base">
                         {balanceVisible
                           ? formatCurrency(
-                              dashboardSummary.myContribution.confirmedTotal ||
-                                0,
+                              confirmedContributionTotal,
                               dashboardSummary.group.currency,
                             )
                           : "••••••"}
@@ -329,11 +349,11 @@ export default function DashboardScreen() {
                         {balanceVisible ? "Hide" : "Show"}
                       </Text>
                     </Pressable>
-                    {dashboardSummary.myContribution.pendingTotal > 0 && (
+                    {pendingContributionTotal > 0 && (
                       <Text className="text-xs text-orange-500">
                         ⏳{" "}
                         {formatCurrency(
-                          dashboardSummary.myContribution.pendingTotal,
+                          pendingContributionTotal,
                           dashboardSummary.group.currency,
                         )}
                       </Text>
@@ -661,7 +681,9 @@ export default function DashboardScreen() {
 
       {/* ========== CONTRIBUTION MODAL ========== */}
       {showContributionModal && (
-        <View
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
           style={{
             position: "absolute",
             top: 0,
@@ -671,158 +693,194 @@ export default function DashboardScreen() {
             backgroundColor: colors.background + "80",
           }}
         >
-          <View className="flex-1 items-center justify-end">
-            <AppCard
-              style={{
-                width: "100%",
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-              }}
-            >
-              <VStack className="gap-4">
-                <Text className="text-lg font-bold">Add Contribution</Text>
-
-                {contributionFeedback && (
-                  <Text style={{ color: colors.error }}>
-                    {contributionFeedback}
-                  </Text>
-                )}
-
-                {contributionTypes.length > 0 && (
-                  <VStack className="gap-2">
-                    <Text className="text-sm font-semibold">
-                      Select contribution
-                    </Text>
-                    {contributionTypes
-                      .filter((type) => type.active)
-                      .map((type) => (
-                        <Pressable
-                          key={type.id}
-                          onPress={() =>
+          <Pressable
+            style={{ flex: 1 }}
+            onPress={() => Keyboard.dismiss()}
+            accessibilityLabel="Dismiss keyboard"
+          >
+            <View className="flex-1 items-center justify-end">
+              <Pressable
+                onPress={(event) => event.stopPropagation()}
+                style={{ width: "100%", maxHeight: "88%" }}
+              >
+                <AppCard
+                  style={{
+                    width: "100%",
+                    borderBottomLeftRadius: 0,
+                    borderBottomRightRadius: 0,
+                  }}
+                >
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="interactive"
+                    contentContainerStyle={{ paddingBottom: 16, gap: 16 }}
+                  >
+                    <VStack className="gap-4">
+                      <Text className="text-lg font-bold">
+                        Add Contribution
+                      </Text>
+                      {contributionFeedback && (
+                        <Text style={{ color: colors.error }}>
+                          {contributionFeedback}
+                        </Text>
+                      )}
+                      {contributionTypes.length > 0 && (
+                        <VStack className="gap-2">
+                          <Text className="text-sm font-semibold">
+                            Select contribution
+                          </Text>
+                          {contributionTypes
+                            .filter((type) => type.active)
+                            .map((type) => (
+                              <Pressable
+                                key={type.id}
+                                onPress={() =>
+                                  setContributionForm((prev) => ({
+                                    ...prev,
+                                    typeId: type.id,
+                                    amount: String(type.amount),
+                                  }))
+                                }
+                                style={{
+                                  borderWidth: 1,
+                                  borderColor:
+                                    contributionForm.typeId === type.id
+                                      ? colors.primary
+                                      : colors.border,
+                                  borderRadius: 10,
+                                  padding: 10,
+                                }}
+                              >
+                                <Text className="font-semibold">
+                                  {type.name}
+                                </Text>
+                                <Text className="text-xs text-muted-foreground">
+                                  {formatCurrency(type.amount, type.currency)} •{" "}
+                                  {type.frequency}
+                                </Text>
+                              </Pressable>
+                            ))}
+                        </VStack>
+                      )}
+                      <VStack className="gap-1">
+                        <Text className="text-sm font-semibold">Amount</Text>
+                        <AppInput
+                          value={contributionForm.amount}
+                          onChangeText={(value) =>
                             setContributionForm((prev) => ({
                               ...prev,
-                              typeId: type.id,
-                              amount: String(type.amount),
+                              amount: value,
                             }))
                           }
-                          style={{
-                            borderWidth: 1,
-                            borderColor:
-                              contributionForm.typeId === type.id
-                                ? colors.primary
-                                : colors.border,
-                            borderRadius: 10,
-                            padding: 10,
-                          }}
-                        >
-                          <Text className="font-semibold">{type.name}</Text>
-                          <Text className="text-xs text-muted-foreground">
-                            {formatCurrency(type.amount, type.currency)} •{" "}
-                            {type.frequency}
-                          </Text>
-                        </Pressable>
-                      ))}
-                  </VStack>
-                )}
-
-                <VStack className="gap-1">
-                  <Text className="text-sm font-semibold">Amount</Text>
-                  <AppInput
-                    value={contributionForm.amount}
-                    onChangeText={(v) =>
-                      setContributionForm((prev) => ({ ...prev, amount: v }))
-                    }
-                    keyboardType="number-pad"
-                    placeholder="e.g., 500"
-                  />
-                </VStack>
-
-                <VStack className="gap-1">
-                  <Text className="text-sm font-semibold">Payment method</Text>
-                  <View className="flex-row gap-2">
-                    {(["Mpesa", "Bank", "cash"] as const).map((method) => (
+                          keyboardType="number-pad"
+                          placeholder="e.g., 500"
+                          returnKeyType="done"
+                        />
+                      </VStack>
+                      <VStack className="gap-1">
+                        <Text className="text-sm font-semibold">
+                          Payment method
+                        </Text>
+                        <View className="flex-row flex-wrap gap-2">
+                          {(["Mpesa", "Bank", "cash"] as const).map(
+                            (method) => (
+                              <Pressable
+                                key={method}
+                                onPress={() =>
+                                  setContributionForm((prev) => ({
+                                    ...prev,
+                                    method,
+                                  }))
+                                }
+                                style={{
+                                  borderWidth: 1,
+                                  borderColor:
+                                    contributionForm.method === method
+                                      ? colors.primary
+                                      : colors.border,
+                                  borderRadius: 999,
+                                  paddingHorizontal: 14,
+                                  paddingVertical: 8,
+                                  backgroundColor:
+                                    contributionForm.method === method
+                                      ? colors.primary
+                                      : "transparent",
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color:
+                                      contributionForm.method === method
+                                        ? colors.onPrimary
+                                        : colors.textPrimary,
+                                  }}
+                                >
+                                  {method}
+                                </Text>
+                              </Pressable>
+                            ),
+                          )}
+                        </View>
+                      </VStack>
                       <Pressable
-                        key={method}
-                        onPress={() =>
-                          setContributionForm((prev) => ({ ...prev, method }))
-                        }
+                        onPress={async () => {
+                          if (!token) return;
+                          const amount = Number(contributionForm.amount);
+                          if (!amount || amount <= 0) {
+                            setContributionFeedback("Enter a valid amount.");
+                            return;
+                          }
+                          setContributionFeedback("");
+                          try {
+                            await addContribution(token, {
+                              amount,
+                              method: contributionForm.method,
+                              contributionType: contributionForm.typeId,
+                            });
+                            setShowContributionModal(false);
+                            setContributionForm({
+                              amount: "",
+                              method: "Mpesa",
+                            });
+                            void fetchDashboardSummary(token);
+                          } catch (err) {
+                            setContributionFeedback(getApiErrorMessage(err));
+                          }
+                        }}
                         style={{
-                          borderWidth: 1,
-                          borderColor:
-                            contributionForm.method === method
-                              ? colors.primary
-                              : colors.border,
-                          borderRadius: 999,
-                          paddingHorizontal: 14,
-                          paddingVertical: 6,
-                          backgroundColor:
-                            contributionForm.method === method
-                              ? colors.primary
-                              : "transparent",
+                          backgroundColor: colors.primary,
+                          borderRadius: 8,
+                          paddingVertical: 13,
+                          alignItems: "center",
                         }}
                       >
                         <Text
-                          style={{
-                            color:
-                              contributionForm.method === method
-                                ? colors.onPrimary
-                                : colors.textPrimary,
-                          }}
+                          style={{ color: colors.onPrimary, fontWeight: "600" }}
                         >
-                          {method}
+                          {contributionMutating
+                            ? "Submitting..."
+                            : "Submit Contribution"}
                         </Text>
                       </Pressable>
-                    ))}
-                  </View>
-                </VStack>
-
-                <Pressable
-                  onPress={async () => {
-                    if (!token) return;
-                    const amount = Number(contributionForm.amount);
-                    if (!amount || amount <= 0) {
-                      setContributionFeedback("Enter a valid amount.");
-                      return;
-                    }
-                    setContributionFeedback("");
-                    try {
-                      await addContribution(token, {
-                        amount,
-                        method: contributionForm.method,
-                        contributionType: contributionForm.typeId,
-                      });
-                      setShowContributionModal(false);
-                      setContributionForm({ amount: "", method: "Mpesa" });
-                      void fetchDashboardSummary(token);
-                    } catch (err) {
-                      setContributionFeedback(getApiErrorMessage(err));
-                    }
-                  }}
-                  style={{
-                    backgroundColor: colors.primary,
-                    borderRadius: 8,
-                    paddingVertical: 12,
-                    alignItems: "center",
-                    opacity: contributionMutating ? 0.7 : 1,
-                  }}
-                >
-                  <Text style={{ color: colors.onPrimary, fontWeight: "600" }}>
-                    {contributionMutating
-                      ? "Submitting..."
-                      : "Submit Contribution"}
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => setShowContributionModal(false)}
-                  className="py-2"
-                >
-                  <Text style={{ color: colors.primary }}>Close</Text>
-                </Pressable>
-              </VStack>
-            </AppCard>
-          </View>
-        </View>
+                      <Pressable
+                        onPress={() => setShowContributionModal(false)}
+                        hitSlop={8}
+                      >
+                        <Text
+                          className="text-center"
+                          style={{ color: colors.primary }}
+                        >
+                          Close
+                        </Text>
+                      </Pressable>
+                    </VStack>
+                  </ScrollView>
+                </AppCard>
+              </Pressable>
+            </View>
+          </Pressable>
+        </KeyboardAvoidingView>
       )}
     </Screen>
   );

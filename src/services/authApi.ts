@@ -93,7 +93,7 @@ export async function checkUsername(
     "/auth/check-username",
     { params: { username } },
   );
-  return data;
+  return data ?? {};
 }
 
 export async function forgotPasswordRequest(

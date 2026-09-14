@@ -39,7 +39,7 @@ interface ContributionState {
   groupLoading: boolean;
 
   // Methods
-  fetch: (token: string, page?: number) => Promise<void>;
+  fetch: (token: string, page?: number, pageSize?: number) => Promise<void>;
   fetchGroupContributions: (token: string, page?: number) => Promise<void>;
   add: (token: string, payload: CreateContributionPayload) => Promise<void>;
   confirm: (token: string, contributionId: string) => Promise<void>;
@@ -69,11 +69,11 @@ export const useContributionStore = create<ContributionState>((set, get) => ({
   groupPagination: defaultPaginationValue,
   groupLoading: false,
 
-  fetch: async (token, page = 1) => {
+  fetch: async (token, page = 1, pageSize = 20) => {
     if (get().loading) return;
     set({ loading: true, error: undefined });
     try {
-      const result = await listMyContributions(token, page);
+      const result = await listMyContributions(token, page, pageSize);
       set({
         contributions: mergePage(get().contributions, result.results, page),
         pagination: result.pagination,

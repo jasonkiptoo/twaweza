@@ -11,6 +11,12 @@ function getEnvironment(): AppEnvironment {
   return value === "staging" || value === "production" ? value : "development";
 }
 
+function getApiBaseUrl(environment: AppEnvironment) {
+  return environment === "development"
+    ? "http://localhost:4100/api/v1"
+    : "https://twaweza-api.onrender.com/api/v1";
+}
+
 export default function appConfig({ config }: ConfigContext): ExpoConfig {
   const environment = getEnvironment();
   return {
@@ -23,7 +29,7 @@ export default function appConfig({ config }: ConfigContext): ExpoConfig {
       ...baseConfig.extra,
       ...config.extra,
       appEnvironment: environment,
-      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+      apiBaseUrl: getApiBaseUrl(environment),
     },
   };
 }

@@ -34,6 +34,25 @@ interface UserSummaryResponse {
     dueForRepayment?: number;
   };
   contributionStatus?: string;
+  contributions?: {
+    frequency?: DashboardSummary["contributions"]["frequency"];
+    amount?: number;
+    progress?: number;
+    periods?: { required?: number; completed?: number };
+    qualifyingPeriods?: number;
+  };
+  contributionProgress?: {
+    required?: boolean;
+    qualifyingPeriods?: number;
+    requiredPeriods?: number;
+    completedPeriods?: number;
+    progress?: number;
+  };
+  contributionPolicy?: {
+    minimumFrequency?: DashboardSummary["contributions"]["frequency"];
+    minimumAmount?: number;
+    minimumPeriods?: number;
+  };
 }
 
 /**
@@ -48,6 +67,20 @@ export async function getDashboardSummary(
   });
   const contributions = data.userContributions ?? {};
   const loans = data.loans ?? {};
+  const contributionProgress = data.contributionProgress ?? {};
+  const contributionDetails = data.contributions ?? {};
+  const contributionPolicy = data.contributionPolicy ?? {};
+  const requiredPeriods =
+    contributionDetails.periods?.required ??
+    contributionProgress.requiredPeriods ??
+    contributionPolicy.minimumPeriods;
+  const completedPeriods =
+    contributionDetails.periods?.completed ??
+    contributionProgress.completedPeriods ??
+    contributionProgress.qualifyingPeriods ??
+    contributionDetails.qualifyingPeriods;
+  const hasPeriodProgress =
+    requiredPeriods !== undefined && completedPeriods !== undefined;
   return {
     user: { id: data.userId ?? "", name: "" },
     group: { id: data.groupId ?? "", name: "", currency: "KES" },
@@ -66,9 +99,17 @@ export async function getDashboardSummary(
       nextRepaymentAmount: loans.dueForRepayment,
     },
     contributions: {
-      frequency: "none",
-      amount: 0,
-      periods: { required: 0, completed: 0 },
+      frequency:
+        contributionDetails.frequency ??
+        contributionPolicy.minimumFrequency ??
+        "none",
+      amount:
+        contributionDetails.amount ?? contributionPolicy.minimumAmount ?? 0,
+      progress:
+        contributionDetails.progress ?? contributionProgress.progress,
+      periods: hasPeriodProgress
+        ? { required: requiredPeriods!, completed: completedPeriods! }
+        : undefined,
     },
     updatedAt: new Date().toISOString(),
   };

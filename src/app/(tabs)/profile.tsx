@@ -33,9 +33,17 @@ export default function ProfileScreen() {
     router.replace("/(auth)/login");
   }
   return (
-    <Screen>
+    <Screen eyebrow="Account" title="Profile" showBack>
       <VStack className="gap-5">
-        <ViewHeader colors={colors} isDark={isDark} toggleTheme={toggleTheme} />
+        <View className="items-end">
+          <IconButton label="Toggle theme" onPress={toggleTheme}>
+            {isDark ? (
+              <Sun color={colors.textSecondary} size={22} />
+            ) : (
+              <Moon color={colors.textSecondary} size={22} />
+            )}
+          </IconButton>
+        </View>
         <AppCard>
           <VStack className="items-center gap-3">
             <VStack
@@ -93,31 +101,5 @@ export default function ProfileScreen() {
         />
       </VStack>
     </Screen>
-  );
-}
-
-function ViewHeader({
-  colors,
-  isDark,
-  toggleTheme,
-}: {
-  colors: { textSecondary: string };
-  isDark: boolean;
-  toggleTheme: () => void;
-}) {
-  return (
-    <VStack className="flex-row items-center justify-between">
-      <VStack>
-        <Text style={{ color: colors.textSecondary }}>Account</Text>
-        <Heading size="3xl">Profile</Heading>
-      </VStack>
-      <IconButton label="Toggle theme" onPress={toggleTheme}>
-        {isDark ? (
-          <Sun color={colors.textSecondary} size={22} />
-        ) : (
-          <Moon color={colors.textSecondary} size={22} />
-        )}
-      </IconButton>
-    </VStack>
   );
 }

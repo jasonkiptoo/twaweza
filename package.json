@@ -57,6 +57,8 @@
   },
   "scripts": {
     "start": "expo start",
+    "start:development": "EXPO_PUBLIC_ENVIRONMENT=development expo start",
+    "start:production": "EXPO_PUBLIC_ENVIRONMENT=production expo start --clear",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",

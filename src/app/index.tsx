@@ -55,7 +55,7 @@ export default function SplashRoute() {
   }, [initialized, opacity, otpRequired, scale, status]);
 
   return (
-    <Screen>
+    <Screen showBack={false}>
       <VStack
         style={[
           styles.container,
@@ -66,17 +66,7 @@ export default function SplashRoute() {
         ]}
       >
         <Animated.View style={{ opacity, transform: [{ scale }] }}>
-          <VStack
-            style={[
-              styles.brandCard,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                shadowColor: colors.textPrimary,
-              },
-            ]}
-            className="items-center gap-4"
-          >
+          <VStack className="items-center gap-4">
             <VStack
               style={[
                 styles.logo,
@@ -117,17 +107,6 @@ const styles = StyleSheet.create({
     margin: -24,
     borderWidth: 1,
     paddingHorizontal: 24,
-  },
-  brandCard: {
-    alignItems: "center",
-    borderRadius: 28,
-    borderWidth: 1,
-    paddingHorizontal: 34,
-    paddingVertical: 34,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 4,
   },
   logo: {
     width: 92,

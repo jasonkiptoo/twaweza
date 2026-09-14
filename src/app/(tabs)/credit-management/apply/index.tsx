@@ -10,7 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { createCreditApplication } from "@/services/creditManagementApi";
 import { useAuthStore } from "@/store/authStore";
 import { useGroupStore } from "@/store/groupStore";
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiErrorMessage, parseApiError } from "@/utils/apiError";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { AlertCircle, CheckCircle } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -115,7 +115,15 @@ export default function ApplyScreen() {
         );
       }
     } catch (cause) {
-      setError(getApiErrorMessage(cause));
+      const parsedError = parseApiError(cause);
+      if (parsedError.reasons?.length) {
+        setEligibilityReasons(parsedError.reasons);
+        setError(
+          "Your application could not be submitted because eligibility requirements were not met.",
+        );
+      } else {
+        setError(getApiErrorMessage(cause));
+      }
     } finally {
       setLoading(false);
     }
@@ -231,7 +239,7 @@ export default function ApplyScreen() {
             <View className="flex-row gap-2 items-center">
               <AlertCircle color={colors.error} size={20} />
               <Text className="font-semibold" style={{ color: colors.error }}>
-                Eligibility issues:
+                Why this application cannot proceed
               </Text>
             </View>
             {eligibilityReasons.map((reason, idx) => (

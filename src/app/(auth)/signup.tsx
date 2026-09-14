@@ -86,16 +86,18 @@ export default function SignupScreen() {
     )
       return;
     let active = true;
-    setUsernameStatus("Checking username...");
     void checkUsername(debouncedUsername)
       .then(
-        (result) =>
-          active &&
+        (result) => {
+          if (!active) return;
           setUsernameStatus(
-            result.available === false
+            result?.available === false
               ? "Username unavailable."
-              : "Username available.",
-          ),
+              : result?.available === true
+                ? "Username available."
+                : "Unable to check username.",
+          );
+        },
       )
       .catch(() => active && setUsernameStatus("Unable to check username."));
     return () => {

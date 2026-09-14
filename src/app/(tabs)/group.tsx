@@ -53,7 +53,11 @@ export default function GroupScreen() {
   }
   const error = groupError || contributionError;
   return (
-    <Screen>
+    <Screen
+      eyebrow="Your savings community"
+      title={group?.name ?? "The Squad"}
+      showBack
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -66,10 +70,6 @@ export default function GroupScreen() {
         }
         contentContainerStyle={{ gap: 20, paddingBottom: 32 }}
       >
-        <VStack className="gap-1">
-          <Text className="text-muted-foreground">Your savings community</Text>
-          <Heading size="3xl">The Squad</Heading>
-        </VStack>
         <ScrollView
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}

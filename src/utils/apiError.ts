@@ -1,5 +1,5 @@
-import axios from "axios";
 import type { ApiError, ApiErrorDetail } from "@/types/api";
+import axios from "axios";
 
 export function parseApiError(error: unknown): ApiError {
   if (!axios.isAxiosError(error)) {
@@ -15,7 +15,12 @@ export function parseApiError(error: unknown): ApiError {
   }
 
   const data = error.response?.data as
-    | { message?: string; error?: string; details?: ApiErrorDetail[] }
+    | {
+        message?: string;
+        error?: string;
+        details?: ApiErrorDetail[];
+        reasons?: string[];
+      }
     | undefined;
   const status = error.response?.status;
   const details = Array.isArray(data?.details) ? data.details : [];
@@ -35,13 +40,15 @@ export function parseApiError(error: unknown): ApiError {
             : "Something went wrong. Please try again.")),
     status,
     details,
+    reasons: Array.isArray(data?.reasons) ? data.reasons : undefined,
     isNetworkError: !error.response,
     isAuthError: status === 401 || status === 403,
   };
 }
 
 export function getApiErrorMessage(error: unknown): string {
-  return parseApiError(error).message;
+  const parsed = parseApiError(error);
+  return parsed.reasons?.length ? parsed.reasons.join("\n") : parsed.message;
 }
 
 export function normalizeApiError(error: unknown): ApiError {

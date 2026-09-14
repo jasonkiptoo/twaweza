@@ -20,7 +20,7 @@ import {
 } from "react-native";
 
 const developmentCredentials = {
-  email: "andrewtate@gmail.com",
+  email: "kiptoojason@gmail.com",
   password: "123456",
 };
 
@@ -31,10 +31,10 @@ export default function LoginScreen() {
   const loading = useAuthStore((state) => state.isLoading);
   const clearError = useAuthStore((state) => state.clearError);
   const [email, setEmail] = useState(
-    env.isDevelopment ? developmentCredentials.email : "",
+    env.isProduction ? developmentCredentials.email : "",
   );
   const [password, setPassword] = useState(
-    env.isDevelopment ? developmentCredentials.password : "",
+    env.isProduction ? developmentCredentials.password : "",
   );
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState("");
@@ -69,10 +69,14 @@ export default function LoginScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: "center",
-            paddingBottom: 32,
+            justifyContent: "flex-start",
+            paddingTop: 24,
+            paddingBottom: 48,
           }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === "ios" ? "interactive" : "on-drag"
+          }
         >
           <Box className="w-full self-center" style={{ maxWidth: 440 }}>
             <VStack className="gap-8">

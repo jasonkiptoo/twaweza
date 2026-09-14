@@ -13,60 +13,19 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useContributionSettingsStore } from "@/store/contributionSettingsStore";
 import type {
-    ContributionFrequency,
-    ContributionMethod,
-    ContributionType,
+  ContributionFrequency,
+  ContributionType,
 } from "@/types/creditManagement";
 import { getApiErrorMessage } from "@/utils/apiError";
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-
-const frequencies: { label: string; value: ContributionFrequency }[] = [
-  { label: "None", value: "none" },
-  { label: "Weekly", value: "weekly" },
-  { label: "Monthly", value: "monthly" },
-];
-
-const methods: { label: string; value: ContributionMethod }[] = [
-  { label: "Mpesa", value: "Mpesa" },
-  { label: "Bank", value: "Bank" },
-  { label: "Cash", value: "cash" },
-];
-
-const boolOptions = [
-  { label: "Yes", value: "true" },
-  { label: "No", value: "false" },
-];
-
-interface SettingsForm {
-  enabled: string;
-  required: string;
-  minimumAmount: string;
-  minimumFrequency: ContributionFrequency;
-  minimumPeriods: string;
-  minimumConfirmedAmount: string;
-  eligibilityPercentage: string;
-  loanMultiplier: string;
-  allowPendingForEligibility: string;
-  approvalRequired: string;
-  allowedMethods: ContributionMethod[];
-  currency: string;
-}
-
-const defaultForm: SettingsForm = {
-  enabled: "true",
-  required: "false",
-  minimumAmount: "0",
-  minimumFrequency: "monthly",
-  minimumPeriods: "1",
-  minimumConfirmedAmount: "0",
-  eligibilityPercentage: "0",
-  loanMultiplier: "1",
-  allowPendingForEligibility: "false",
-  approvalRequired: "true",
-  allowedMethods: ["Mpesa"],
-  currency: "KES",
-};
+import { useEffect, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 
 interface TypeForm {
   name: string;
@@ -86,15 +45,35 @@ const defaultTypeForm: TypeForm = {
   active: true,
 };
 
+const emptyTypeForm: TypeForm = {
+  name: "",
+  description: "",
+  amount: "",
+  currency: "KES",
+  frequency: "monthly",
+  active: true,
+};
+
+const frequencies: Array<{ label: string; value: ContributionFrequency }> = [
+  { label: "None", value: "none" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
+];
+
+const boolOptions = [
+  { label: "Yes", value: "true" },
+  { label: "No", value: "false" },
+];
+
 export default function AdminContributionSettingsScreen() {
   const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
   const settings = useContributionSettingsStore((state) => state.settings);
-  const loading = useContributionSettingsStore((state) => state.loading);
-  const updating = useContributionSettingsStore((state) => state.updating);
+  const settingsLoading = useContributionSettingsStore(
+    (state) => state.loading,
+  );
   const error = useContributionSettingsStore((state) => state.error);
   const fetchSettings = useContributionSettingsStore((state) => state.fetch);
-  const updateSettings = useContributionSettingsStore((state) => state.update);
   const types = useContributionSettingsStore((state) => state.types);
   const typesLoading = useContributionSettingsStore(
     (state) => state.typesLoading,
@@ -107,9 +86,6 @@ export default function AdminContributionSettingsScreen() {
   const addType = useContributionSettingsStore((state) => state.addType);
   const editType = useContributionSettingsStore((state) => state.editType);
 
-  const [form, setForm] = useState<SettingsForm>(defaultForm);
-  const [feedback, setFeedback] = useState("");
-
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
   const [editingType, setEditingType] = useState<ContributionType | null>(null);
   const [typeForm, setTypeForm] = useState<TypeForm>(defaultTypeForm);
@@ -121,61 +97,6 @@ export default function AdminContributionSettingsScreen() {
       void fetchTypes(token);
     }
   }, [fetchSettings, fetchTypes, token]);
-
-  useEffect(() => {
-    if (!settings) return;
-    setForm({
-      enabled: String(settings.enabled),
-      required: String(settings.required),
-      minimumAmount: String(settings.minimumAmount ?? 0),
-      minimumFrequency: settings.minimumFrequency,
-      minimumPeriods: String(settings.minimumPeriods ?? 0),
-      minimumConfirmedAmount: String(settings.minimumConfirmedAmount ?? 0),
-      eligibilityPercentage: String(settings.eligibilityPercentage ?? 0),
-      loanMultiplier: String(settings.loanMultiplier ?? 1),
-      allowPendingForEligibility: String(settings.allowPendingForEligibility),
-      approvalRequired: String(settings.approvalRequired),
-      allowedMethods: settings.allowedMethods ?? ["Mpesa"],
-      currency: settings.currency ?? "KES",
-    });
-  }, [settings]);
-
-  const update = (field: keyof SettingsForm, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
-
-  const toggleMethod = (method: ContributionMethod) =>
-    setForm((prev) => ({
-      ...prev,
-      allowedMethods: prev.allowedMethods.includes(method)
-        ? prev.allowedMethods.filter((item) => item !== method)
-        : [...prev.allowedMethods, method],
-    }));
-
-  const canSave = useMemo(() => Boolean(token) && !updating, [token, updating]);
-
-  const handleSave = async () => {
-    if (!token) return;
-    setFeedback("");
-    try {
-      await updateSettings(token, {
-        enabled: form.enabled === "true",
-        required: form.required === "true",
-        minimumAmount: Number(form.minimumAmount) || 0,
-        minimumFrequency: form.minimumFrequency,
-        minimumPeriods: Number(form.minimumPeriods) || 0,
-        minimumConfirmedAmount: Number(form.minimumConfirmedAmount) || 0,
-        eligibilityPercentage: Number(form.eligibilityPercentage) || 0,
-        loanMultiplier: Number(form.loanMultiplier) || 1,
-        allowPendingForEligibility: form.allowPendingForEligibility === "true",
-        approvalRequired: form.approvalRequired === "true",
-        allowedMethods: form.allowedMethods,
-        currency: form.currency,
-      });
-      setFeedback("✅ Contribution settings saved.");
-    } catch (err) {
-      setFeedback(`❌ ${getApiErrorMessage(err)}`);
-    }
-  };
 
   const openAddType = () => {
     setEditingType(null);
@@ -225,47 +146,6 @@ export default function AdminContributionSettingsScreen() {
     }
   };
 
-  function renderToggle(
-    field:
-      | "enabled"
-      | "required"
-      | "allowPendingForEligibility"
-      | "approvalRequired",
-    label: string,
-  ) {
-    return (
-      <FormField label={label}>
-        <View style={styles.row}>
-          {boolOptions.map((opt) => (
-            <Pressable
-              key={opt.value}
-              onPress={() => update(field, opt.value)}
-              style={[
-                styles.chip,
-                {
-                  borderColor: colors.border,
-                  backgroundColor:
-                    form[field] === opt.value ? colors.primary : "transparent",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  color:
-                    form[field] === opt.value
-                      ? colors.onPrimary
-                      : colors.textPrimary,
-                }}
-              >
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </FormField>
-    );
-  }
-
   return (
     <Screen>
       <ScrollView
@@ -281,7 +161,7 @@ export default function AdminContributionSettingsScreen() {
           </Text>
         </VStack>
 
-        {loading && !settings && <AppSkeleton height={200} />}
+        {settingsLoading && !settings && <AppSkeleton height={160} />}
 
         <VStack className="gap-3">
           <VStack className="flex-row items-center justify-between">
@@ -332,151 +212,26 @@ export default function AdminContributionSettingsScreen() {
           />
         )}
 
-        {feedback && (
-          <Text
-            className={
-              feedback.startsWith("✅") ? "text-success" : "text-error"
-            }
-          >
-            {feedback}
-          </Text>
+        {settings && (
+          <VStack className="gap-3">
+            <Heading size="lg">Policy</Heading>
+            <AppCard>
+              <VStack className="gap-4">
+                <PolicyRow label="Contributions enabled" value={settings.enabled ? "Yes" : "No"} />
+                <PolicyRow label="Contributions required" value={settings.required ? "Yes" : "No"} />
+                <PolicyRow label="Minimum amount" value={`${settings.currency} ${settings.minimumAmount}`} />
+                <PolicyRow label="Minimum frequency" value={settings.minimumFrequency} />
+                <PolicyRow label="Minimum periods" value={String(settings.minimumPeriods)} />
+                <PolicyRow label="Minimum confirmed amount" value={`${settings.currency} ${settings.minimumConfirmedAmount}`} />
+                <PolicyRow label="Loan eligibility percentage" value={`${settings.eligibilityPercentage}%`} />
+                <PolicyRow label="Loan multiplier" value={`${settings.loanMultiplier}x confirmed contributions`} />
+                <PolicyRow label="Pending contributions count" value={settings.allowPendingForEligibility ? "Yes" : "No"} />
+                <PolicyRow label="Approval required" value={settings.approvalRequired ? "Yes" : "No"} />
+                <PolicyRow label="Allowed methods" value={settings.allowedMethods.join(", ")} />
+              </VStack>
+            </AppCard>
+          </VStack>
         )}
-
-        <VStack className="gap-4 border border-border rounded-lg p-4">
-          {renderToggle("enabled", "Contributions enabled")}
-          {renderToggle("required", "Contributions required")}
-
-          <FormField label="Minimum amount">
-            <AppInput
-              value={form.minimumAmount}
-              onChangeText={(v) => update("minimumAmount", v)}
-              keyboardType="number-pad"
-              placeholder="e.g., 500"
-            />
-          </FormField>
-
-          <FormField label="Minimum frequency">
-            <View style={styles.row}>
-              {frequencies.map((opt) => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => update("minimumFrequency", opt.value)}
-                  style={[
-                    styles.chip,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor:
-                        form.minimumFrequency === opt.value
-                          ? colors.primary
-                          : "transparent",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color:
-                        form.minimumFrequency === opt.value
-                          ? colors.onPrimary
-                          : colors.textPrimary,
-                    }}
-                  >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </FormField>
-
-          <FormField label="Minimum periods">
-            <AppInput
-              value={form.minimumPeriods}
-              onChangeText={(v) => update("minimumPeriods", v)}
-              keyboardType="number-pad"
-              placeholder="e.g., 3"
-            />
-          </FormField>
-
-          <FormField label="Minimum confirmed amount">
-            <AppInput
-              value={form.minimumConfirmedAmount}
-              onChangeText={(v) => update("minimumConfirmedAmount", v)}
-              keyboardType="number-pad"
-              placeholder="e.g., 1500"
-            />
-          </FormField>
-
-          <FormField label="Eligibility percentage">
-            <AppInput
-              value={form.eligibilityPercentage}
-              onChangeText={(v) => update("eligibilityPercentage", v)}
-              keyboardType="decimal-pad"
-              placeholder="e.g., 80"
-            />
-          </FormField>
-
-          <FormField label="Loan multiplier">
-            <AppInput
-              value={form.loanMultiplier}
-              onChangeText={(v) => update("loanMultiplier", v)}
-              keyboardType="decimal-pad"
-              placeholder="e.g., 3"
-            />
-          </FormField>
-
-          {renderToggle(
-            "allowPendingForEligibility",
-            "Count pending contributions toward eligibility",
-          )}
-          {renderToggle(
-            "approvalRequired",
-            "Require approval for contributions",
-          )}
-
-          <FormField label="Allowed payment methods">
-            <View style={styles.row}>
-              {methods.map((opt) => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => toggleMethod(opt.value)}
-                  style={[
-                    styles.chip,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor: form.allowedMethods.includes(opt.value)
-                        ? colors.primary
-                        : "transparent",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: form.allowedMethods.includes(opt.value)
-                        ? colors.onPrimary
-                        : colors.textPrimary,
-                    }}
-                  >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </FormField>
-
-          <FormField label="Currency">
-            <AppInput
-              value={form.currency}
-              onChangeText={(v) => update("currency", v)}
-              placeholder="e.g., KES"
-            />
-          </FormField>
-
-          <AppButton
-            title="Save settings"
-            onPress={handleSave}
-            loading={updating}
-            isDisabled={!canSave}
-          />
-        </VStack>
       </ScrollView>
 
       <AppDialog
@@ -484,21 +239,34 @@ export default function AdminContributionSettingsScreen() {
         title={editingType ? "Edit contribution type" : "Add contribution type"}
         onClose={() => setTypeDialogOpen(false)}
         footer={
-          <>
-            <AppButton
-              title="Cancel"
-              variant="outline"
-              onPress={() => setTypeDialogOpen(false)}
-            />
-            <AppButton
-              title="Save"
-              loading={mutatingType}
-              onPress={handleSaveType}
-            />
-          </>
+          <View style={styles.dialogActions}>
+            <View style={styles.dialogButton}>
+              <AppButton
+                title="Cancel"
+                variant="outline"
+                onPress={() => setTypeDialogOpen(false)}
+              />
+            </View>
+            <View style={styles.dialogButton}>
+              <AppButton
+                title="Save"
+                loading={mutatingType}
+                onPress={handleSaveType}
+              />
+            </View>
+          </View>
         }
       >
-        <VStack className="gap-3">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
+        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.dialogContent}
+          >
+            <VStack className="gap-4">
           {typeFeedback && (
             <Text style={{ color: colors.error }}>{typeFeedback}</Text>
           )}
@@ -508,7 +276,7 @@ export default function AdminContributionSettingsScreen() {
               onChangeText={(v) =>
                 setTypeForm((prev) => ({ ...prev, name: v }))
               }
-              placeholder="e.g., Monthly Contribution"
+              placeholder="Monthly Contribution"
             />
           </FormField>
           <FormField label="Description">
@@ -527,7 +295,7 @@ export default function AdminContributionSettingsScreen() {
                 setTypeForm((prev) => ({ ...prev, amount: v }))
               }
               keyboardType="number-pad"
-              placeholder="e.g., 5050"
+              placeholder="5050"
             />
           </FormField>
           <FormField label="Frequency">
@@ -599,7 +367,9 @@ export default function AdminContributionSettingsScreen() {
               ))}
             </View>
           </FormField>
-        </VStack>
+            </VStack>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </AppDialog>
     </Screen>
   );
@@ -616,5 +386,32 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,
+  },
+  dialogActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  dialogButton: {
+    flex: 1,
+  },
+  dialogContent: {
+    padding: 16,
+  },
+});
+
+function PolicyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={policyRowStyles.container}>
+      <Text className="text-muted-foreground">{label}</Text>
+      <Text>{value}</Text>
+    </View>
+  );
+}
+
+const policyRowStyles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 16,
   },
 });
