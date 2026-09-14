@@ -105,8 +105,7 @@ export async function getDashboardSummary(
         "none",
       amount:
         contributionDetails.amount ?? contributionPolicy.minimumAmount ?? 0,
-      progress:
-        contributionDetails.progress ?? contributionProgress.progress,
+      progress: contributionDetails.progress ?? contributionProgress.progress,
       periods: hasPeriodProgress
         ? { required: requiredPeriods!, completed: completedPeriods! }
         : undefined,
@@ -160,7 +159,7 @@ export async function createContribution(
   token: string,
   payload: {
     amount: number;
-    method: "Mpesa" | "Bank" | "cash";
+    method: "mpesa" | "bank" | "cash";
     reference?: string;
     phone?: string;
   },

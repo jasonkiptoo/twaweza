@@ -12,6 +12,10 @@
 
 import { Screen } from "@/components/layout/Screen";
 import { AppCard } from "@/components/ui/AppCard";
+import {
+  contributionPaymentMethodLabel,
+  PaymentMethodIcon,
+} from "@/components/credit-management/PaymentMethodIcon";
 import { AppInput } from "@/components/ui/AppInput";
 import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { Heading } from "@/components/ui/heading";
@@ -28,6 +32,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { isAdmin } from "@/types/auth";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { formatCurrency } from "@/utils/currency";
+import { formatFinancialDate } from "@/utils/date";
 import { router, useFocusEffect } from "expo-router";
 import { Bell, Plus, Send, WalletCards } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
@@ -72,6 +77,12 @@ export default function DashboardScreen() {
   const fetchContributionTypes = useContributionSettingsStore(
     (state) => state.fetchTypes,
   );
+  const contributionSettings = useContributionSettingsStore(
+    (state) => state.settings,
+  );
+  const fetchContributionSettings = useContributionSettingsStore(
+    (state) => state.fetch,
+  );
 
   // Notifications
   const unreadCount = useNotificationStore((state) => state.unreadCount);
@@ -86,9 +97,14 @@ export default function DashboardScreen() {
   const [contributionForm, setContributionForm] = useState<{
     typeId?: string;
     amount: string;
-    method: "Mpesa" | "Bank" | "cash";
-  }>({ amount: "", method: "Mpesa" });
+    method: "mpesa" | "bank" | "cash";
+  }>({ amount: "", method: "mpesa" });
   const [contributionFeedback, setContributionFeedback] = useState("");
+
+  const selectedPaymentMethod =
+    contributionSettings?.allowedMethods.includes(contributionForm.method)
+      ? contributionForm.method
+      : (contributionSettings?.allowedMethods[0] ?? "mpesa");
 
   const confirmedContributionTotal = contributions.reduce(
     (total, contribution) =>
@@ -111,6 +127,7 @@ export default function DashboardScreen() {
       fetchContributions(token, 1, 100);
       fetchGroup(token);
       fetchContributionTypes(token);
+      fetchContributionSettings(token);
       refreshUnreadCount(token);
     }
   }, [
@@ -119,6 +136,7 @@ export default function DashboardScreen() {
     fetchContributions,
     fetchGroup,
     fetchContributionTypes,
+    fetchContributionSettings,
     refreshUnreadCount,
   ]);
 
@@ -366,9 +384,7 @@ export default function DashboardScreen() {
                         {contributions[0].contributionTypeName ??
                           "Contribution"}
                         {" • "}
-                        {new Date(
-                          contributions[0].contributedAt,
-                        ).toLocaleDateString()}
+                        {formatFinancialDate(contributions[0].contributedAt)}
                       </Text>
                       <Text
                         className="text-xs font-semibold"
@@ -452,9 +468,9 @@ export default function DashboardScreen() {
                       </View>
                       <Text className="text-xs text-muted-foreground">
                         {dashboardSummary.myLoans.nextRepaymentDate
-                          ? new Date(
+                          ? formatFinancialDate(
                               dashboardSummary.myLoans.nextRepaymentDate,
-                            ).toLocaleDateString()
+                            )
                           : "N/A"}
                       </Text>
                     </View>
@@ -618,9 +634,7 @@ export default function DashboardScreen() {
                         )}
                       </Text>
                       <Text className="text-xs text-muted-foreground mt-1">
-                        {new Date(
-                          contribution.contributedAt,
-                        ).toLocaleDateString()}
+                        {formatFinancialDate(contribution.contributedAt)}
                       </Text>
                       {contribution.reference && (
                         <Text className="text-xs text-muted-foreground">
@@ -783,7 +797,7 @@ export default function DashboardScreen() {
                           Payment method
                         </Text>
                         <View className="flex-row flex-wrap gap-2">
-                          {(["Mpesa", "Bank", "cash"] as const).map(
+                          {(contributionSettings?.allowedMethods ?? []).map(
                             (method) => (
                               <Pressable
                                 key={method}
@@ -796,27 +810,36 @@ export default function DashboardScreen() {
                                 style={{
                                   borderWidth: 1,
                                   borderColor:
-                                    contributionForm.method === method
+                                    selectedPaymentMethod === method
                                       ? colors.primary
                                       : colors.border,
                                   borderRadius: 999,
                                   paddingHorizontal: 14,
                                   paddingVertical: 8,
                                   backgroundColor:
-                                    contributionForm.method === method
+                                    selectedPaymentMethod === method
                                       ? colors.primary
-                                      : "transparent",
+                                      : colors.card,
                                 }}
                               >
+                                <PaymentMethodIcon
+                                  method={method}
+                                  color={
+                                    contributionForm.method === method
+                                      ? colors.onPrimary
+                                      : colors.primary
+                                  }
+                                  size={18}
+                                />
                                 <Text
                                   style={{
                                     color:
-                                      contributionForm.method === method
+                                      selectedPaymentMethod === method
                                         ? colors.onPrimary
                                         : colors.textPrimary,
                                   }}
                                 >
-                                  {method}
+                                  {contributionPaymentMethodLabel(method)}
                                 </Text>
                               </Pressable>
                             ),
@@ -835,13 +858,15 @@ export default function DashboardScreen() {
                           try {
                             await addContribution(token, {
                               amount,
-                              method: contributionForm.method,
+                              method: selectedPaymentMethod,
                               contributionType: contributionForm.typeId,
                             });
                             setShowContributionModal(false);
                             setContributionForm({
                               amount: "",
-                              method: "Mpesa",
+                              method:
+                                contributionSettings?.allowedMethods[0] ??
+                                "mpesa",
                             });
                             void fetchDashboardSummary(token);
                           } catch (err) {

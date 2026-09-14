@@ -2,6 +2,7 @@ import { AppCard } from "@/components/ui/AppCard";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { formatFinancialDate } from "@/utils/date";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import type { CreditLoan } from "@/types/creditManagement";
@@ -44,7 +45,7 @@ export function LoanCard({ loan }: { loan: CreditLoan }) {
           {loan.nextPaymentDate && (
             <Text size="sm" className="text-muted-foreground">
               Next payment:{" "}
-              {new Date(loan.nextPaymentDate).toLocaleDateString()}
+              {formatFinancialDate(loan.nextPaymentDate)}
             </Text>
           )}
           {loan.overdueDays !== undefined && loan.overdueDays > 0 && (

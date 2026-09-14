@@ -11,6 +11,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useLoanDetails } from "@/hooks/useLoanDetails";
 import { useTheme } from "@/hooks/useTheme";
+import { formatFinancialDate } from "@/utils/date";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { RefreshCw } from "lucide-react-native";
 import { Pressable, ScrollView, View } from "react-native";
@@ -91,7 +92,7 @@ export default function LoanDetailsScreen() {
                   {loan.nextPaymentDate && (
                     <Text className="text-muted-foreground">
                       Next payment:{" "}
-                      {new Date(loan.nextPaymentDate).toLocaleDateString()}
+                      {formatFinancialDate(loan.nextPaymentDate)}
                     </Text>
                   )}
                   {loan.overdueDays !== undefined && loan.overdueDays > 0 && (

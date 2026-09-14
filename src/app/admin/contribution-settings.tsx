@@ -1,4 +1,9 @@
 import { AppDialog } from "@/components/feedback/AppDialog";
+import {
+  contributionPaymentMethodLabel,
+  PaymentMethodIcon,
+  type ContributionPaymentMethod,
+} from "@/components/credit-management/PaymentMethodIcon";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
@@ -45,16 +50,7 @@ const defaultTypeForm: TypeForm = {
   active: true,
 };
 
-const emptyTypeForm: TypeForm = {
-  name: "",
-  description: "",
-  amount: "",
-  currency: "KES",
-  frequency: "monthly",
-  active: true,
-};
-
-const frequencies: Array<{ label: string; value: ContributionFrequency }> = [
+const frequencies: { label: string; value: ContributionFrequency }[] = [
   { label: "None", value: "none" },
   { label: "Weekly", value: "weekly" },
   { label: "Monthly", value: "monthly" },
@@ -64,6 +60,8 @@ const boolOptions = [
   { label: "Yes", value: "true" },
   { label: "No", value: "false" },
 ];
+
+const paymentMethods: ContributionPaymentMethod[] = ["mpesa", "bank", "cash"];
 
 export default function AdminContributionSettingsScreen() {
   const { colors } = useTheme();
@@ -90,6 +88,7 @@ export default function AdminContributionSettingsScreen() {
   const [editingType, setEditingType] = useState<ContributionType | null>(null);
   const [typeForm, setTypeForm] = useState<TypeForm>(defaultTypeForm);
   const [typeFeedback, setTypeFeedback] = useState("");
+  const [paymentFeedback, setPaymentFeedback] = useState("");
 
   useEffect(() => {
     if (token) {
@@ -146,6 +145,23 @@ export default function AdminContributionSettingsScreen() {
     }
   };
 
+  const savePaymentMethods = async () => {
+    if (!token || !settings) return;
+    if (!settings.allowedMethods.length) {
+      setPaymentFeedback("Enable at least one payment method.");
+      return;
+    }
+    try {
+      setPaymentFeedback("");
+      await useContributionSettingsStore.getState().update(token, {
+        allowedMethods: settings.allowedMethods,
+      });
+      setPaymentFeedback("Payment methods saved.");
+    } catch (err) {
+      setPaymentFeedback(getApiErrorMessage(err));
+    }
+  };
+
   return (
     <Screen>
       <ScrollView
@@ -156,7 +172,7 @@ export default function AdminContributionSettingsScreen() {
         <VStack className="gap-2">
           <Heading size="3xl">Contribution settings</Heading>
           <Text className="text-muted-foreground">
-            Configure the group's contribution policy and loan eligibility
+            Configure the group&apos;s contribution policy and loan eligibility
             rules.
           </Text>
         </VStack>
@@ -214,6 +230,59 @@ export default function AdminContributionSettingsScreen() {
 
         {settings && (
           <VStack className="gap-3">
+            <Heading size="lg">Payment methods</Heading>
+            <AppCard>
+              <VStack className="gap-3">
+                <Text className="text-muted-foreground">
+                  Choose how members can record contributions for this group.
+                </Text>
+                <View style={styles.row}>
+                  {paymentMethods.map((method) => {
+                    const enabled = settings.allowedMethods.includes(method);
+                    return (
+                      <Pressable
+                        key={method}
+                        onPress={() => {
+                          const allowedMethods = enabled
+                            ? settings.allowedMethods.filter((item) => item !== method)
+                            : [...settings.allowedMethods, method];
+                          useContributionSettingsStore.setState({
+                            settings: { ...settings, allowedMethods },
+                          });
+                          setPaymentFeedback("");
+                        }}
+                        style={[
+                          styles.paymentMethod,
+                          {
+                            borderColor: enabled ? colors.primary : colors.border,
+                            backgroundColor: enabled ? colors.primary : colors.card,
+                          },
+                        ]}
+                      >
+                        <PaymentMethodIcon
+                          method={method}
+                          color={enabled ? colors.onPrimary : colors.primary}
+                        />
+                        <Text
+                          style={{
+                            color: enabled ? colors.onPrimary : colors.textPrimary,
+                            fontWeight: "600",
+                          }}
+                        >
+                          {contributionPaymentMethodLabel(method)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                {paymentFeedback && (
+                  <Text style={{ color: paymentFeedback.includes("saved") ? colors.success : colors.error }}>
+                    {paymentFeedback}
+                  </Text>
+                )}
+                <AppButton title="Save payment methods" onPress={savePaymentMethods} />
+              </VStack>
+            </AppCard>
             <Heading size="lg">Policy</Heading>
             <AppCard>
               <VStack className="gap-4">
@@ -386,6 +455,15 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,
+  },
+  paymentMethod: {
+    alignItems: "center",
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   dialogActions: {
     flexDirection: "row",

@@ -53,7 +53,7 @@ interface ContributionState {
 
 export interface CreateContributionPayload {
   amount: number;
-  method: "Mpesa" | "Bank" | "cash";
+  method: "mpesa" | "bank" | "cash";
   reference?: string;
   contributionType?: string;
 }

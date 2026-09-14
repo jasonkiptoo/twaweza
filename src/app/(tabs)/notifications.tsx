@@ -8,6 +8,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
+import { formatFinancialDate } from "@/utils/date";
 import {
     selectNotificationHasMore,
     useNotificationStore,
@@ -96,7 +97,7 @@ export default function NotificationsScreen() {
                 </VStack>
                 <Text className="text-muted-foreground">{item.message}</Text>
                 <Text size="sm" className="text-muted-foreground">
-                  {new Date(item.createdAt).toLocaleString()}
+                  {formatFinancialDate(item.createdAt)}
                 </Text>
               </VStack>
             </AppCard>

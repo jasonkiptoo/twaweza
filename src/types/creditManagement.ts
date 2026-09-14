@@ -132,7 +132,7 @@ export interface PaginatedCredit<T> {
 
 // ======== CONTRIBUTION TYPES (NEW API CONTRACT) ========
 
-export type ContributionMethod = "Mpesa" | "Bank" | "cash";
+export type ContributionMethod = "mpesa" | "bank" | "cash";
 export type ContributionStatus =
   "pending" | "confirmed" | "failed" | "rejected";
 export type ContributionFrequency = "none" | "weekly" | "monthly";
@@ -216,21 +216,31 @@ export interface GroupFinancialSummary {
     currency: string;
   };
   contributions: {
+    total?: number;
     confirmedTotal: number;
+    approved?: number;
     pendingTotal: number;
+    pending?: number;
     memberCount: number;
   };
   loans: {
+    totalPrincipal?: number;
     totalDisbursed: number;
     outstandingPrincipal: number;
+    outstanding?: number;
+    totalRepaid?: number;
     repaidPrincipal: number;
+    totalInterest?: number;
+    totalFees?: number;
     activeLoans: number;
+    completedLoans?: number;
     pendingApplications: number;
   };
   financialPosition: {
     totalContributions: number;
     outstandingLoanPrincipal: number;
     availableGroupFunds: number;
+    availableFunds?: number;
   };
   contributionPolicy: Pick<
     ContributionSettings,

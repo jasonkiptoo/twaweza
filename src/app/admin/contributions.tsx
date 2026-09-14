@@ -1,4 +1,9 @@
 import { AppDialog } from "@/components/feedback/AppDialog";
+import {
+  contributionPaymentMethodLabel,
+  normalizeContributionPaymentMethod,
+  PaymentMethodIcon,
+} from "@/components/credit-management/PaymentMethodIcon";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
@@ -11,10 +16,13 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
 import { useContributionStore } from "@/store/contributionStore";
+import { useTheme } from "@/hooks/useTheme";
+import { formatFinancialDate } from "@/utils/date";
 import { useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 export default function AdminContributionsScreen() {
+  const { colors } = useTheme();
   const token = useAuthStore((state) => state.token);
   const {
     groupContributions: contributions,
@@ -111,13 +119,24 @@ export default function AdminContributionsScreen() {
               <View style={styles.amountRow}>
                 <CurrencyAmount value={item.amount} size="lg" />
                 <Text size="sm" className="text-muted-foreground">
-                  {new Date(item.contributedAt).toLocaleDateString()}
+                  {formatFinancialDate(item.contributedAt)}
                 </Text>
               </View>
-              <Text className="text-muted-foreground">
-                {item.method}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                {normalizeContributionPaymentMethod(item.method) && (
+                  <PaymentMethodIcon
+                    method={normalizeContributionPaymentMethod(item.method)!}
+                    color={colors.primary}
+                    size={17}
+                  />
+                )}
+                <Text className="text-muted-foreground">
+                {contributionPaymentMethodLabel(
+                  normalizeContributionPaymentMethod(item.method) ?? "cash",
+                )}
                 {item.reference ? ` • ${item.reference}` : ""}
-              </Text>
+                </Text>
+              </View>
               <View style={styles.actions}>
                 <View style={styles.actionButton}>
                   <AppButton

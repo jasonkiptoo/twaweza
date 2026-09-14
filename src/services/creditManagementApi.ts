@@ -1,3 +1,4 @@
+import { normalizeContributionPaymentMethod } from "@/components/credit-management/PaymentMethodIcon";
 import type { Pagination } from "@/types/api";
 import type {
     Contribution,
@@ -9,6 +10,7 @@ import type {
     CreditProduct,
     CreditReconciliation,
     GroupContribution,
+    GroupFinancialSummary,
     LoanDecision,
     PaginatedCredit,
     PaymentMethod,
@@ -222,6 +224,15 @@ export async function getPortfolio(token: string, params: ListParams = {}) {
   return { ...result, results: result.results.map(normalizeEntityId) };
 }
 
+export async function getGroupFinancialSummary(
+  token: string,
+): Promise<GroupFinancialSummary> {
+  const { data } = await api.get("/credit-management/group/financial-summary", {
+    headers: authHeaders(token),
+  });
+  return data as GroupFinancialSummary;
+}
+
 export async function reconcileCreditLoan(token: string, loanId: string) {
   const { data } = await api.get(
     `/credit-management/loans/${loanId}/reconciliation`,
@@ -260,7 +271,14 @@ export async function getContributionSettings(
   const { data } = await api.get("/credit-management/contributions/settings", {
     headers: authHeaders(token),
   });
-  return (data as { settings: ContributionSettings }).settings;
+  const settings = (data as { settings: ContributionSettings }).settings;
+  return {
+    ...settings,
+    allowedMethods: (settings.allowedMethods ?? []).flatMap((method) => {
+      const normalized = normalizeContributionPaymentMethod(method);
+      return normalized ? [normalized] : [];
+    }),
+  };
 }
 
 export async function updateContributionSettings(
@@ -274,7 +292,14 @@ export async function updateContributionSettings(
       headers: authHeaders(token),
     },
   );
-  return (data as { settings: ContributionSettings }).settings;
+  const settings = (data as { settings: ContributionSettings }).settings;
+  return {
+    ...settings,
+    allowedMethods: (settings.allowedMethods ?? []).flatMap((method) => {
+      const normalized = normalizeContributionPaymentMethod(method);
+      return normalized ? [normalized] : [];
+    }),
+  };
 }
 
 export async function listContributionTypes(
@@ -328,7 +353,7 @@ export async function createCreditContribution(
   token: string,
   payload: {
     amount: number;
-    method: "Mpesa" | "Bank" | "cash";
+    method: "mpesa" | "bank" | "cash";
     reference?: string;
     contributionType?: string;
     idempotencyKey?: string;
@@ -407,6 +432,7 @@ export const creditManagementApi = {
   recordPayment: recordCreditPayment,
   reconcileLoan: reconcileCreditLoan,
   portfolioReport: getPortfolio,
+  getGroupFinancialSummary,
   getContributionSettings,
   updateContributionSettings,
   listContributionTypes,

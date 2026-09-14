@@ -3,10 +3,14 @@
  * Manages dashboard summary, financial position, and contribution progress data
  */
 
-import { create } from "zustand";
-import type { DashboardSummary, GroupFinancialSummary } from "@/types/creditManagement";
+import { getGroupFinancialSummary } from "@/services/creditManagementApi";
 import { getDashboardSummary } from "@/services/dashboardApi";
+import type {
+    DashboardSummary,
+    GroupFinancialSummary,
+} from "@/types/creditManagement";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { create } from "zustand";
 
 interface DashboardState {
   // Dashboard summary
@@ -52,10 +56,17 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
 
   fetchFinancialSummary: async (token: string) => {
-    // The backend currently exposes no financial-summary route. Keep this
-    // method for screen compatibility until a server contract is added.
-    void token;
-    set({ financialLoading: false, financialError: undefined });
+    if (get().financialLoading) return;
+    set({ financialLoading: true, financialError: undefined });
+    try {
+      const summary = await getGroupFinancialSummary(token);
+      set({ financialSummary: summary, financialLoading: false });
+    } catch (error) {
+      set({
+        financialError: getApiErrorMessage(error),
+        financialLoading: false,
+      });
+    }
   },
 
   refreshAll: async (token: string) => {

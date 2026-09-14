@@ -1,6 +1,7 @@
 import { AppCard } from "@/components/ui/AppCard";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { formatFinancialDate } from "@/utils/date";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import type { CreditLoanSchedule } from "@/types/creditManagement";
@@ -30,7 +31,7 @@ export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
             <Text size="sm" className="text-muted-foreground">
               Due{" "}
               {item.dueDate
-                ? new Date(item.dueDate).toLocaleDateString()
+                ? formatFinancialDate(item.dueDate)
                 : "date unavailable"}
             </Text>
             <VStack className="flex-row justify-between">
@@ -51,7 +52,7 @@ export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {
             </VStack>
             {item.paidAt && (
               <Text size="sm" className="text-muted-foreground">
-                Paid {new Date(item.paidAt).toLocaleDateString()}
+                Paid {formatFinancialDate(item.paidAt)}
               </Text>
             )}
             {item.amountPaid !== undefined && (

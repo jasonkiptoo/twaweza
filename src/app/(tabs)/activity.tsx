@@ -11,6 +11,7 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAuthStore } from "@/store/authStore";
 import { useActivityStore } from "@/store/activityStore";
+import { formatFinancialDate } from "@/utils/date";
 
 export default function ActivityScreen() {
   const token = useAuthStore((state) => state.token);
@@ -62,7 +63,7 @@ export default function ActivityScreen() {
               )}
               {activity.createdAt && (
                 <Text size="sm" className="text-muted-foreground">
-                  {new Date(activity.createdAt).toLocaleDateString()}
+                  {formatFinancialDate(activity.createdAt)}
                 </Text>
               )}
             </VStack>
