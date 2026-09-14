@@ -1,5 +1,5 @@
-import { Banknote, Building2, Smartphone, Wallet } from "lucide-react-native";
 import type { LucideIcon } from "lucide-react-native";
+import { Banknote, Building2, Smartphone, Wallet } from "lucide-react-native";
 import type { ColorValue } from "react-native";
 
 export type ContributionPaymentMethod = "mpesa" | "bank" | "cash";
@@ -7,7 +7,10 @@ export type ContributionPaymentMethod = "mpesa" | "bank" | "cash";
 export function normalizeContributionPaymentMethod(
   method: unknown,
 ): ContributionPaymentMethod | undefined {
-  const value = String(method ?? "").trim().toLowerCase().replace(/[\s-]/g, "");
+  const value = String(method ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]/g, "");
   if (value === "mpesa") return "mpesa";
   if (value === "bank") return "bank";
   if (value === "cash") return "cash";

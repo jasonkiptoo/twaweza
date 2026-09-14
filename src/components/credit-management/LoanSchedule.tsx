@@ -1,10 +1,10 @@
 import { AppCard } from "@/components/ui/AppCard";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { formatFinancialDate } from "@/utils/date";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import type { CreditLoanSchedule } from "@/types/creditManagement";
+import { formatFinancialDate } from "@/utils/date";
 import { ScrollView } from "react-native";
 
 export function LoanSchedule({ schedule }: { schedule: CreditLoanSchedule[] }) {

@@ -10,12 +10,12 @@
  * - Pull-to-refresh support
  */
 
+import {
+    contributionPaymentMethodLabel,
+    PaymentMethodIcon,
+} from "@/components/credit-management/PaymentMethodIcon";
 import { Screen } from "@/components/layout/Screen";
 import { AppCard } from "@/components/ui/AppCard";
-import {
-  contributionPaymentMethodLabel,
-  PaymentMethodIcon,
-} from "@/components/credit-management/PaymentMethodIcon";
 import { AppInput } from "@/components/ui/AppInput";
 import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { Heading } from "@/components/ui/heading";
@@ -101,10 +101,11 @@ export default function DashboardScreen() {
   }>({ amount: "", method: "mpesa" });
   const [contributionFeedback, setContributionFeedback] = useState("");
 
-  const selectedPaymentMethod =
-    contributionSettings?.allowedMethods.includes(contributionForm.method)
-      ? contributionForm.method
-      : (contributionSettings?.allowedMethods[0] ?? "mpesa");
+  const selectedPaymentMethod = contributionSettings?.allowedMethods.includes(
+    contributionForm.method,
+  )
+    ? contributionForm.method
+    : (contributionSettings?.allowedMethods[0] ?? "mpesa");
 
   const confirmedContributionTotal = contributions.reduce(
     (total, contribution) =>

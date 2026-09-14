@@ -1,9 +1,9 @@
-import { AppDialog } from "@/components/feedback/AppDialog";
 import {
-  contributionPaymentMethodLabel,
-  PaymentMethodIcon,
-  type ContributionPaymentMethod,
+    contributionPaymentMethodLabel,
+    PaymentMethodIcon,
+    type ContributionPaymentMethod,
 } from "@/components/credit-management/PaymentMethodIcon";
+import { AppDialog } from "@/components/feedback/AppDialog";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
@@ -18,18 +18,18 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useContributionSettingsStore } from "@/store/contributionSettingsStore";
 import type {
-  ContributionFrequency,
-  ContributionType,
+    ContributionFrequency,
+    ContributionType,
 } from "@/types/creditManagement";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { useEffect, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    View,
 } from "react-native";
 
 interface TypeForm {
@@ -244,7 +244,9 @@ export default function AdminContributionSettingsScreen() {
                         key={method}
                         onPress={() => {
                           const allowedMethods = enabled
-                            ? settings.allowedMethods.filter((item) => item !== method)
+                            ? settings.allowedMethods.filter(
+                                (item) => item !== method,
+                              )
                             : [...settings.allowedMethods, method];
                           useContributionSettingsStore.setState({
                             settings: { ...settings, allowedMethods },
@@ -254,8 +256,12 @@ export default function AdminContributionSettingsScreen() {
                         style={[
                           styles.paymentMethod,
                           {
-                            borderColor: enabled ? colors.primary : colors.border,
-                            backgroundColor: enabled ? colors.primary : colors.card,
+                            borderColor: enabled
+                              ? colors.primary
+                              : colors.border,
+                            backgroundColor: enabled
+                              ? colors.primary
+                              : colors.card,
                           },
                         ]}
                       >
@@ -265,7 +271,9 @@ export default function AdminContributionSettingsScreen() {
                         />
                         <Text
                           style={{
-                            color: enabled ? colors.onPrimary : colors.textPrimary,
+                            color: enabled
+                              ? colors.onPrimary
+                              : colors.textPrimary,
                             fontWeight: "600",
                           }}
                         >
@@ -276,27 +284,69 @@ export default function AdminContributionSettingsScreen() {
                   })}
                 </View>
                 {paymentFeedback && (
-                  <Text style={{ color: paymentFeedback.includes("saved") ? colors.success : colors.error }}>
+                  <Text
+                    style={{
+                      color: paymentFeedback.includes("saved")
+                        ? colors.success
+                        : colors.error,
+                    }}
+                  >
                     {paymentFeedback}
                   </Text>
                 )}
-                <AppButton title="Save payment methods" onPress={savePaymentMethods} />
+                <AppButton
+                  title="Save payment methods"
+                  onPress={savePaymentMethods}
+                />
               </VStack>
             </AppCard>
             <Heading size="lg">Policy</Heading>
             <AppCard>
               <VStack className="gap-4">
-                <PolicyRow label="Contributions enabled" value={settings.enabled ? "Yes" : "No"} />
-                <PolicyRow label="Contributions required" value={settings.required ? "Yes" : "No"} />
-                <PolicyRow label="Minimum amount" value={`${settings.currency} ${settings.minimumAmount}`} />
-                <PolicyRow label="Minimum frequency" value={settings.minimumFrequency} />
-                <PolicyRow label="Minimum periods" value={String(settings.minimumPeriods)} />
-                <PolicyRow label="Minimum confirmed amount" value={`${settings.currency} ${settings.minimumConfirmedAmount}`} />
-                <PolicyRow label="Loan eligibility percentage" value={`${settings.eligibilityPercentage}%`} />
-                <PolicyRow label="Loan multiplier" value={`${settings.loanMultiplier}x confirmed contributions`} />
-                <PolicyRow label="Pending contributions count" value={settings.allowPendingForEligibility ? "Yes" : "No"} />
-                <PolicyRow label="Approval required" value={settings.approvalRequired ? "Yes" : "No"} />
-                <PolicyRow label="Allowed methods" value={settings.allowedMethods.join(", ")} />
+                <PolicyRow
+                  label="Contributions enabled"
+                  value={settings.enabled ? "Yes" : "No"}
+                />
+                <PolicyRow
+                  label="Contributions required"
+                  value={settings.required ? "Yes" : "No"}
+                />
+                <PolicyRow
+                  label="Minimum amount"
+                  value={`${settings.currency} ${settings.minimumAmount}`}
+                />
+                <PolicyRow
+                  label="Minimum frequency"
+                  value={settings.minimumFrequency}
+                />
+                <PolicyRow
+                  label="Minimum periods"
+                  value={String(settings.minimumPeriods)}
+                />
+                <PolicyRow
+                  label="Minimum confirmed amount"
+                  value={`${settings.currency} ${settings.minimumConfirmedAmount}`}
+                />
+                <PolicyRow
+                  label="Loan eligibility percentage"
+                  value={`${settings.eligibilityPercentage}%`}
+                />
+                <PolicyRow
+                  label="Loan multiplier"
+                  value={`${settings.loanMultiplier}x confirmed contributions`}
+                />
+                <PolicyRow
+                  label="Pending contributions count"
+                  value={settings.allowPendingForEligibility ? "Yes" : "No"}
+                />
+                <PolicyRow
+                  label="Approval required"
+                  value={settings.approvalRequired ? "Yes" : "No"}
+                />
+                <PolicyRow
+                  label="Allowed methods"
+                  value={settings.allowedMethods.join(", ")}
+                />
               </VStack>
             </AppCard>
           </VStack>
@@ -336,106 +386,109 @@ export default function AdminContributionSettingsScreen() {
             contentContainerStyle={styles.dialogContent}
           >
             <VStack className="gap-4">
-          {typeFeedback && (
-            <Text style={{ color: colors.error }}>{typeFeedback}</Text>
-          )}
-          <FormField label="Name" required>
-            <AppInput
-              value={typeForm.name}
-              onChangeText={(v) =>
-                setTypeForm((prev) => ({ ...prev, name: v }))
-              }
-              placeholder="Monthly Contribution"
-            />
-          </FormField>
-          <FormField label="Description">
-            <AppInput
-              value={typeForm.description}
-              onChangeText={(v) =>
-                setTypeForm((prev) => ({ ...prev, description: v }))
-              }
-              placeholder="Optional description"
-            />
-          </FormField>
-          <FormField label="Amount" required>
-            <AppInput
-              value={typeForm.amount}
-              onChangeText={(v) =>
-                setTypeForm((prev) => ({ ...prev, amount: v }))
-              }
-              keyboardType="number-pad"
-              placeholder="5050"
-            />
-          </FormField>
-          <FormField label="Frequency">
-            <View style={styles.row}>
-              {frequencies.map((opt) => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() =>
-                    setTypeForm((prev) => ({ ...prev, frequency: opt.value }))
+              {typeFeedback && (
+                <Text style={{ color: colors.error }}>{typeFeedback}</Text>
+              )}
+              <FormField label="Name" required>
+                <AppInput
+                  value={typeForm.name}
+                  onChangeText={(v) =>
+                    setTypeForm((prev) => ({ ...prev, name: v }))
                   }
-                  style={[
-                    styles.chip,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor:
-                        typeForm.frequency === opt.value
-                          ? colors.primary
-                          : "transparent",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color:
-                        typeForm.frequency === opt.value
-                          ? colors.onPrimary
-                          : colors.textPrimary,
-                    }}
-                  >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </FormField>
-          <FormField label="Active">
-            <View style={styles.row}>
-              {boolOptions.map((opt) => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() =>
-                    setTypeForm((prev) => ({
-                      ...prev,
-                      active: opt.value === "true",
-                    }))
+                  placeholder="Monthly Contribution"
+                />
+              </FormField>
+              <FormField label="Description">
+                <AppInput
+                  value={typeForm.description}
+                  onChangeText={(v) =>
+                    setTypeForm((prev) => ({ ...prev, description: v }))
                   }
-                  style={[
-                    styles.chip,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor:
-                        String(typeForm.active) === opt.value
-                          ? colors.primary
-                          : "transparent",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color:
-                        String(typeForm.active) === opt.value
-                          ? colors.onPrimary
-                          : colors.textPrimary,
-                    }}
-                  >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </FormField>
+                  placeholder="Optional description"
+                />
+              </FormField>
+              <FormField label="Amount" required>
+                <AppInput
+                  value={typeForm.amount}
+                  onChangeText={(v) =>
+                    setTypeForm((prev) => ({ ...prev, amount: v }))
+                  }
+                  keyboardType="number-pad"
+                  placeholder="5050"
+                />
+              </FormField>
+              <FormField label="Frequency">
+                <View style={styles.row}>
+                  {frequencies.map((opt) => (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() =>
+                        setTypeForm((prev) => ({
+                          ...prev,
+                          frequency: opt.value,
+                        }))
+                      }
+                      style={[
+                        styles.chip,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor:
+                            typeForm.frequency === opt.value
+                              ? colors.primary
+                              : "transparent",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          color:
+                            typeForm.frequency === opt.value
+                              ? colors.onPrimary
+                              : colors.textPrimary,
+                        }}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </FormField>
+              <FormField label="Active">
+                <View style={styles.row}>
+                  {boolOptions.map((opt) => (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() =>
+                        setTypeForm((prev) => ({
+                          ...prev,
+                          active: opt.value === "true",
+                        }))
+                      }
+                      style={[
+                        styles.chip,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor:
+                            String(typeForm.active) === opt.value
+                              ? colors.primary
+                              : "transparent",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          color:
+                            String(typeForm.active) === opt.value
+                              ? colors.onPrimary
+                              : colors.textPrimary,
+                        }}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </FormField>
             </VStack>
           </ScrollView>
         </KeyboardAvoidingView>

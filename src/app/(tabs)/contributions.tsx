@@ -1,9 +1,9 @@
-import { Screen } from "@/components/layout/Screen";
 import {
-  contributionPaymentMethodLabel,
-  normalizeContributionPaymentMethod,
-  PaymentMethodIcon,
+    contributionPaymentMethodLabel,
+    normalizeContributionPaymentMethod,
+    PaymentMethodIcon,
 } from "@/components/credit-management/PaymentMethodIcon";
+import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
@@ -112,7 +112,9 @@ export default function ContributionsScreen() {
                 <StatusBadge status={item.status} />
               </VStack>
               <CurrencyAmount value={item.amount} />
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
                 {normalizeContributionPaymentMethod(item.method) && (
                   <PaymentMethodIcon
                     method={normalizeContributionPaymentMethod(item.method)!}
@@ -123,7 +125,8 @@ export default function ContributionsScreen() {
                 <Text size="sm" className="text-muted-foreground">
                   {contributionPaymentMethodLabel(
                     normalizeContributionPaymentMethod(item.method) ?? "cash",
-                  )} • {formatFinancialDate(item.contributedAt)}{" "}
+                  )}{" "}
+                  • {formatFinancialDate(item.contributedAt)}{" "}
                 </Text>
                 {item.reference ? `• ${item.reference}` : ""}
               </View>

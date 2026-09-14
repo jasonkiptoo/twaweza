@@ -1,17 +1,17 @@
-import { useEffect } from "react";
-import { RefreshControl, ScrollView } from "react-native";
 import { Screen } from "@/components/layout/Screen";
-import { AppCard } from "@/components/ui/AppCard";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
-import { AppSkeleton } from "@/components/ui/AppSkeleton";
-import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { AppButton } from "@/components/ui/AppButton";
+import { AppCard } from "@/components/ui/AppCard";
+import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
+import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { useAuthStore } from "@/store/authStore";
 import { useActivityStore } from "@/store/activityStore";
+import { useAuthStore } from "@/store/authStore";
 import { formatFinancialDate } from "@/utils/date";
+import { useEffect } from "react";
+import { RefreshControl, ScrollView } from "react-native";
 
 export default function ActivityScreen() {
   const token = useAuthStore((state) => state.token);

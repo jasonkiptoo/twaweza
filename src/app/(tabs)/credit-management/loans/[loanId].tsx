@@ -2,8 +2,8 @@ import { LoanSchedule } from "@/components/credit-management/LoanSchedule";
 import { Screen } from "@/components/layout/Screen";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
-import { AppErrorState } from "@/components/ui/AppStates";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppErrorState } from "@/components/ui/AppStates";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -29,7 +29,9 @@ export default function LoanDetailsScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         <VStack className="gap-4">
-          <View style={{ backgroundColor: colors.background, paddingBottom: 4 }}>
+          <View
+            style={{ backgroundColor: colors.background, paddingBottom: 4 }}
+          >
             <VStack className="flex-row items-center justify-between">
               <Heading size="3xl">Loan details</Heading>
               <Pressable
@@ -91,8 +93,7 @@ export default function LoanDetailsScreen() {
                   </VStack>
                   {loan.nextPaymentDate && (
                     <Text className="text-muted-foreground">
-                      Next payment:{" "}
-                      {formatFinancialDate(loan.nextPaymentDate)}
+                      Next payment: {formatFinancialDate(loan.nextPaymentDate)}
                     </Text>
                   )}
                   {loan.overdueDays !== undefined && loan.overdueDays > 0 && (

@@ -8,11 +8,11 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
-import { formatFinancialDate } from "@/utils/date";
 import {
     selectNotificationHasMore,
     useNotificationStore,
 } from "@/store/notificationStore";
+import { formatFinancialDate } from "@/utils/date";
 import { useEffect } from "react";
 import { Pressable, RefreshControl, ScrollView } from "react-native";
 

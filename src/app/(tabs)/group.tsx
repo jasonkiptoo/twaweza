@@ -11,8 +11,8 @@ import { VStack } from "@/components/ui/vstack";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useContributionStore } from "@/store/contributionStore";
-import { useGroupStore } from "@/store/groupStore";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { useGroupStore } from "@/store/groupStore";
 import { formatCurrency } from "@/utils/currency";
 import { formatFinancialDate } from "@/utils/date";
 import { Landmark, Users } from "lucide-react-native";
@@ -147,27 +147,59 @@ export default function GroupScreen() {
             ) : financialSummary ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                 {[
-                  ["Available funds", financialSummary.financialPosition.availableGroupFunds],
-                  ["Total contributions", financialSummary.contributions.confirmedTotal],
+                  [
+                    "Available funds",
+                    financialSummary.financialPosition.availableGroupFunds,
+                  ],
+                  [
+                    "Total contributions",
+                    financialSummary.contributions.confirmedTotal,
+                  ],
                   ["Loans disbursed", financialSummary.loans.totalDisbursed],
-                  ["Outstanding loans", financialSummary.loans.outstandingPrincipal],
-                  ["Total repaid", financialSummary.loans.totalRepaid ?? financialSummary.loans.repaidPrincipal],
-                  ["Pending contributions", financialSummary.contributions.pendingTotal],
+                  [
+                    "Outstanding loans",
+                    financialSummary.loans.outstandingPrincipal,
+                  ],
+                  [
+                    "Total repaid",
+                    financialSummary.loans.totalRepaid ??
+                      financialSummary.loans.repaidPrincipal,
+                  ],
+                  [
+                    "Pending contributions",
+                    financialSummary.contributions.pendingTotal,
+                  ],
                 ].map(([label, value]) => (
-                  <AppCard key={String(label)} style={{ flexBasis: "47%", flexGrow: 1 }}>
-                    <Text size="sm" className="text-muted-foreground">{label}</Text>
+                  <AppCard
+                    key={String(label)}
+                    style={{ flexBasis: "47%", flexGrow: 1 }}
+                  >
+                    <Text size="sm" className="text-muted-foreground">
+                      {label}
+                    </Text>
                     <Text className="text-lg font-bold">
-                      {formatCurrency(Number(value), financialSummary.group.currency)}
+                      {formatCurrency(
+                        Number(value),
+                        financialSummary.group.currency,
+                      )}
                     </Text>
                   </AppCard>
                 ))}
                 <AppCard style={{ flexBasis: "47%", flexGrow: 1 }}>
-                  <Text size="sm" className="text-muted-foreground">Members</Text>
-                  <Text className="text-lg font-bold">{financialSummary.contributions.memberCount}</Text>
+                  <Text size="sm" className="text-muted-foreground">
+                    Members
+                  </Text>
+                  <Text className="text-lg font-bold">
+                    {financialSummary.contributions.memberCount}
+                  </Text>
                 </AppCard>
                 <AppCard style={{ flexBasis: "47%", flexGrow: 1 }}>
-                  <Text size="sm" className="text-muted-foreground">Active loans</Text>
-                  <Text className="text-lg font-bold">{financialSummary.loans.activeLoans}</Text>
+                  <Text size="sm" className="text-muted-foreground">
+                    Active loans
+                  </Text>
+                  <Text className="text-lg font-bold">
+                    {financialSummary.loans.activeLoans}
+                  </Text>
                 </AppCard>
               </View>
             ) : null}
@@ -194,8 +226,7 @@ export default function GroupScreen() {
                       {item.contributionTypeName ?? "Contribution"}
                     </Text>
                     <Text size="sm" className="text-muted-foreground">
-                      {item.method} •{" "}
-                      {formatFinancialDate(item.contributedAt)}
+                      {item.method} • {formatFinancialDate(item.contributedAt)}
                     </Text>
                   </VStack>
                   <VStack className="items-end gap-1">

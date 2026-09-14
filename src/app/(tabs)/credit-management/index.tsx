@@ -1,17 +1,17 @@
 import { Screen } from "@/components/layout/Screen";
 import { AppCard } from "@/components/ui/AppCard";
-import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppEmptyState, AppErrorState } from "@/components/ui/AppStates";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Heading } from "@/components/ui/heading";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
 import { useContributionStore } from "@/store/contributionStore";
 import { useCreditManagementStore } from "@/store/creditManagementStore";
 import { formatFinancialDate } from "@/utils/date";
-import { useTheme } from "@/hooks/useTheme";
 import { CreditCard, PiggyBank } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
@@ -41,7 +41,8 @@ export default function CreditHome() {
     void load();
   }, [load]);
 
-  const isLoading = section === "Contributions" ? contributionsLoading : loansLoading;
+  const isLoading =
+    section === "Contributions" ? contributionsLoading : loansLoading;
   const error = section === "Contributions" ? contributionsError : loansError;
 
   return (
@@ -49,7 +50,11 @@ export default function CreditHome() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={load} tintColor={colors.primary} />
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={load}
+            tintColor={colors.primary}
+          />
         }
         contentContainerStyle={{ gap: 16, paddingBottom: 32 }}
       >
@@ -99,10 +104,17 @@ export default function CreditHome() {
                 </Text>
               </VStack>
             </View>
-            {contributionsLoading && !contributions.length && <AppSkeleton height={120} />}
-            {!contributionsLoading && !contributionsError && !contributions.length && (
-              <AppEmptyState title="No contributions" message="Your contribution history will appear here." />
+            {contributionsLoading && !contributions.length && (
+              <AppSkeleton height={120} />
             )}
+            {!contributionsLoading &&
+              !contributionsError &&
+              !contributions.length && (
+                <AppEmptyState
+                  title="No contributions"
+                  message="Your contribution history will appear here."
+                />
+              )}
             {contributions.slice(0, 8).map((contribution) => (
               <AppCard key={contribution.id}>
                 <View className="flex-row items-center justify-between gap-3">
@@ -111,7 +123,8 @@ export default function CreditHome() {
                       {contribution.contributionTypeName ?? "Contribution"}
                     </Text>
                     <Text size="sm" className="text-muted-foreground">
-                      {contribution.method} • {formatFinancialDate(contribution.contributedAt)}
+                      {contribution.method} •{" "}
+                      {formatFinancialDate(contribution.contributedAt)}
                     </Text>
                   </VStack>
                   <VStack className="items-end gap-1">
@@ -136,7 +149,10 @@ export default function CreditHome() {
             </View>
             {loansLoading && !loans.length && <AppSkeleton height={140} />}
             {!loansLoading && !loansError && !loans.length && (
-              <AppEmptyState title="No loans" message="Your loans will appear here." />
+              <AppEmptyState
+                title="No loans"
+                message="Your loans will appear here."
+              />
             )}
             {loans.slice(0, 8).map((loan) => (
               <AppCard key={loan.id}>
@@ -149,16 +165,21 @@ export default function CreditHome() {
                       <Text size="sm" className="text-muted-foreground">
                         Principal:
                       </Text>
-                      <CurrencyAmount value={loan.principalAmount ?? loan.principal} />
+                      <CurrencyAmount
+                        value={loan.principalAmount ?? loan.principal}
+                      />
                     </View>
                     {loan.nextPaymentDate && (
                       <Text size="sm" className="text-muted-foreground">
-                        Next payment: {formatFinancialDate(loan.nextPaymentDate)}
+                        Next payment:{" "}
+                        {formatFinancialDate(loan.nextPaymentDate)}
                       </Text>
                     )}
                   </VStack>
                   <VStack className="items-end gap-1">
-                    <CurrencyAmount value={loan.amountRemaining ?? loan.balance} />
+                    <CurrencyAmount
+                      value={loan.amountRemaining ?? loan.balance}
+                    />
                     <StatusBadge status={loan.status} />
                   </VStack>
                 </View>
