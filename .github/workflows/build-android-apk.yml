@@ -1,0 +1,95 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-apk:
+    name: Build production APK
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EAS_ACCOUNT: ${{ vars.EAS_ACCOUNT }}
+      EXPO_PUBLIC_ENVIRONMENT: production
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.1
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install EAS CLI
+        run: npm install --global eas-cli@24.3.0
+
+      - name: Validate EAS credentials
+        run: |
+          test -n "$EXPO_TOKEN" || { echo "Missing EXPO_TOKEN repository secret"; exit 1; }
+          test -n "$EAS_ACCOUNT" || { echo "Missing EAS_ACCOUNT repository variable"; exit 1; }
+          eas whoami
+
+      - name: Link or create EAS project
+        run: |
+          if node -e 'const { execFileSync } = require("node:child_process"); const config = JSON.parse(execFileSync("npx", ["expo", "config", "--type", "public", "--json"], { encoding: "utf8" })); process.exit(config.extra?.eas?.projectId === "replace-with-eas-project-id" ? 0 : 1);'; then
+            eas project:init \
+              --account "$EAS_ACCOUNT" \
+              --force \
+              --non-interactive
+          else
+            echo "Using the EAS project already linked in app.json"
+          fi
+
+      - name: Build production APK
+        run: |
+          eas build \
+            --platform android \
+            --profile production-apk \
+            --wait \
+            --non-interactive \
+            --json > eas-build.json
+
+      - name: Download APK
+        run: |
+          mkdir -p artifacts
+          node <<'NODE'
+          const fs = require('fs');
+          const builds = JSON.parse(fs.readFileSync('eas-build.json', 'utf8'));
+          const build = Array.isArray(builds) ? builds[0] : builds;
+          const url = build?.artifacts?.buildUrl;
+          if (!url) {
+            console.error('EAS did not return an APK artifact URL');
+            process.exit(1);
+          }
+          fs.writeFileSync('apk-url.txt', url);
+          NODE
+          curl --fail --location --retry 3 "$(cat apk-url.txt)" \
+            --output artifacts/savesmart-production.apk
+          test -s artifacts/savesmart-production.apk
+
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: savesmart-production-apk
+          path: artifacts/savesmart-production.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Add build summary
+        run: |
+          {
+            echo "## SaveSmart production APK"
+            echo
+            echo 'The installable APK is attached to this workflow run as the "savesmart-production-apk" artifact.'
+            echo
+            echo "API environment: production"
+            echo "API base URL: https://twaweza-api.onrender.com/api/v1"
+          } >> "$GITHUB_STEP_SUMMARY"
