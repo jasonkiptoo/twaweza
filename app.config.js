@@ -1,23 +1,20 @@
-import type { ConfigContext, ExpoConfig } from "expo/config";
-import appJson from "./app.json";
+const appJson = require("./app.json");
 
-const baseConfig = appJson.expo as ExpoConfig;
+const baseConfig = appJson.expo;
 
-type AppEnvironment = "development" | "staging" | "production";
-
-function getEnvironment(): AppEnvironment {
+function getEnvironment() {
   const value =
     process.env.EXPO_PUBLIC_ENVIRONMENT ?? process.env.EXPO_PUBLIC_APP_ENV;
   return value === "staging" || value === "production" ? value : "development";
 }
 
-function getApiBaseUrl(environment: AppEnvironment) {
+function getApiBaseUrl(environment) {
   return environment === "development"
     ? "http://localhost:4100/api/v1"
     : "https://twaweza-api.onrender.com/api/v1";
 }
 
-export default function appConfig({ config }: ConfigContext): ExpoConfig {
+module.exports = ({ config }) => {
   const environment = getEnvironment();
   return {
     ...baseConfig,
@@ -32,4 +29,4 @@ export default function appConfig({ config }: ConfigContext): ExpoConfig {
       apiBaseUrl: getApiBaseUrl(environment),
     },
   };
-}
+};

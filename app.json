@@ -41,8 +41,11 @@
     "extra": {
       "appEnvironment": "development",
       "eas": {
-        "projectId": "replace-with-eas-project-id"
-      }
-    }
+        "projectId": "b857c207-788d-4372-9185-c1ba678868a2"
+      },
+      "apiBaseUrl": "http://localhost:4100/api/v1",
+      "router": {}
+    },
+    "owner": "jasonkiptoo"
   }
 }
