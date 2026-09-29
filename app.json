@@ -8,7 +8,8 @@
     "scheme": "savesmart",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/savesmart-icon.png"
+      "icon": "./assets/images/savesmart-icon.png",
+      "bundleIdentifier": "com.savesmart.app"
     },
     "android": {
       "package": "com.savesmart.app",
@@ -43,7 +44,7 @@
       "eas": {
         "projectId": "b857c207-788d-4372-9185-c1ba678868a2"
       },
-      "apiBaseUrl": "http://localhost:4100/api/v1",
+      "apiBaseUrl": "https://twaweza-api.onrender.com/api/v1",
       "router": {}
     },
     "owner": "jasonkiptoo"

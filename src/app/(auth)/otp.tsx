@@ -156,40 +156,38 @@ export default function OtpScreen() {
             <VStack className="gap-3">
               <Text bold>Verification code</Text>
               <VStack className="flex-row justify-between">
-                <>
-                  {digits.map((digit, index) => (
-                    <Pressable
-                      key={index}
-                      onPress={() => inputs.current[index]?.focus()}
-                    >
-                      <TextInput
-                        ref={(input) => {
-                          inputs.current[index] = input;
-                        }}
-                        value={digit}
-                        onChangeText={(value) => updateDigit(index, value)}
-                        onKeyPress={({ nativeEvent }) =>
-                          handleKeyPress(index, nativeEvent.key)
-                        }
-                        keyboardType="number-pad"
-                        maxLength={4}
-                        style={{
-                          width: 64,
-                          height: 58,
-                          borderRadius: 12,
-                          borderWidth: 1,
-                          borderColor: error ? colors.error : colors.border,
-                          color: colors.textPrimary,
-                          backgroundColor: colors.card,
-                          textAlign: "center",
-                          fontSize: 20,
-                          fontWeight: "700",
-                        }}
-                        accessibilityLabel={`Verification digit ${index + 1}`}
-                      />
-                    </Pressable>
-                  ))}
-                </>
+                {digits.map((digit, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() => inputs.current[index]?.focus()}
+                  >
+                    <TextInput
+                      ref={(input) => {
+                        inputs.current[index] = input;
+                      }}
+                      value={digit}
+                      onChangeText={(value) => updateDigit(index, value)}
+                      onKeyPress={({ nativeEvent }) =>
+                        handleKeyPress(index, nativeEvent.key)
+                      }
+                      keyboardType="number-pad"
+                      maxLength={4}
+                      style={{
+                        width: 64,
+                        height: 58,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: error ? colors.error : colors.border,
+                        color: colors.textPrimary,
+                        backgroundColor: colors.card,
+                        textAlign: "center",
+                        fontSize: 20,
+                        fontWeight: "700",
+                      }}
+                      accessibilityLabel={`Verification digit ${index + 1}`}
+                    />
+                  </Pressable>
+                ))}
               </VStack>
               {error && <Text className="text-error">{error}</Text>}
             </VStack>

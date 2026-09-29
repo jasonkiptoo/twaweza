@@ -18,6 +18,7 @@
     "axios": "^1.19.0",
     "expo": "~57.0.15",
     "expo-constants": "~57.0.13",
+    "expo-dev-client": "^57.0.19",
     "expo-device": "~57.0.1",
     "expo-font": "~57.0.1",
     "expo-glass-effect": "~57.0.1",
@@ -62,8 +63,8 @@
     "build:android:apk": "eas build --platform android --profile production-apk",
     "build:android:apk:wait": "eas build --platform android --profile production-apk --wait",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },
