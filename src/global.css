@@ -37,6 +37,25 @@
   --accent-foreground: 52 52 52;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+#landing-page [id] {
+  scroll-margin-top: 88px;
+}
+
+#landing-page *:focus-visible {
+  outline: 3px solid #f4b942;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 .dark:root {
   --primary: 255 245 245;
   --primary-foreground: 23 23 23;
